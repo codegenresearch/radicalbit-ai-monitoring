@@ -283,13 +283,15 @@ class ModelReferenceDatasetTest(unittest.TestCase):
         avg = 0.1
         class_metrics = [
             {
-                "class": "class1",
+                "name": "class1",
+                "count": 500,
                 "precision": 0.8,
                 "recall": 0.9,
                 "f1": 0.85
             },
             {
-                "class": "class2",
+                "name": "class2",
+                "count": 500,
                 "precision": 0.7,
                 "recall": 0.6,
                 "f1": 0.65
@@ -297,12 +299,14 @@ class ModelReferenceDatasetTest(unittest.TestCase):
         ]
         feature_metrics = [
             {
-                "feature": "feature1",
-                "importance": 0.4
+                "featureName": "feature1",
+                "missingValue": 0,
+                "medianMetrics": {}
             },
             {
-                "feature": "feature2",
-                "importance": 0.6
+                "featureName": "feature2",
+                "missingValue": 0,
+                "medianMetrics": {}
             }
         ]
         model_reference_dataset = ModelReferenceDataset(
@@ -339,8 +343,20 @@ class ModelReferenceDatasetTest(unittest.TestCase):
 
         assert data_quality.n_observations == n_observations
         assert data_quality.avg == avg
-        assert data_quality.class_metrics == class_metrics
-        assert data_quality.feature_metrics == feature_metrics
+        assert len(data_quality.class_metrics) == len(class_metrics)
+        for i, cm in enumerate(data_quality.class_metrics):
+            assert cm.name == class_metrics[i]["name"]
+            assert cm.count == class_metrics[i]["count"]
+            assert cm.precision == class_metrics[i]["precision"]
+            assert cm.recall == class_metrics[i]["recall"]
+            assert cm.f1 == class_metrics[i]["f1"]
+
+        assert len(data_quality.feature_metrics) == len(feature_metrics)
+        for i, fm in enumerate(data_quality.feature_metrics):
+            assert fm.feature_name == feature_metrics[i]["featureName"]
+            assert fm.missing_value == feature_metrics[i]["missingValue"]
+            assert fm.median_metrics == feature_metrics[i]["medianMetrics"]
+
         assert model_reference_dataset.status() == JobStatus.SUCCEEDED
 
     @responses.activate
