@@ -37,8 +37,8 @@ from .model_definition import (
     CreateModel,
     Granularity,
     ModelDefinition,
-    ModelFeatures,  # Included ModelFeatures here
     OutputType,
+    ModelFeatures,  # Included ModelFeatures here
 )
 from .model_type import ModelType
 from .supported_types import SupportedTypes
@@ -59,7 +59,7 @@ __all__ = [
     'Granularity',
     'CreateModel',
     'ModelDefinition',
-    'ModelFeatures',  # Moved ModelFeatures here
+    'ModelFeatures',
     'ColumnDefinition',
     'JobStatus',
     'DataType',
