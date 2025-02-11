@@ -1,5 +1,6 @@
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
+from typing import Optional
 
 
 class DatasetStats(BaseModel):
@@ -9,9 +10,9 @@ class DatasetStats(BaseModel):
     missing_cells_perc: Optional[float] = None
     duplicate_rows: Optional[int] = None
     duplicate_rows_perc: Optional[float] = None
-    numeric: Optional[int] = None
-    categorical: Optional[int] = None
-    datetime: Optional[int] = None
+    numeric: int
+    categorical: int
+    datetime: int
 
     model_config = ConfigDict(
         populate_by_name=True, alias_generator=to_camel, protected_namespaces=()
