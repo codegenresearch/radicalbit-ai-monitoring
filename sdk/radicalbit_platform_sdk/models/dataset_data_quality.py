@@ -3,6 +3,14 @@ from pydantic.alias_generators import to_camel
 from typing import List, Union, Optional
 
 
+class Histogram(BaseModel):
+    buckets: List[float]
+    reference_values: List[int]
+    current_values: Optional[List[int]] = None
+
+    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
+
+
 class ClassMetrics(BaseModel):
     name: str
     count: int
@@ -67,14 +75,6 @@ class CategoricalFeatureMetrics(FeatureMetrics):
     type: str = "categorical"
     category_frequency: List[CategoryFrequency]
     distinct_value: int
-
-    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
-
-
-class Histogram(BaseModel):
-    buckets: List[float]
-    reference_values: List[int]
-    current_values: Optional[List[int]] = None
 
     model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
 
