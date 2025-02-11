@@ -25,28 +25,21 @@ class Granularity(str, Enum):
     MONTH = 'MONTH'
 
 
-class ModelFeatures(BaseModel):
-    features: List[ColumnDefinition]
-
-    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
-
-
 class BaseModelDefinition(BaseModel):
     """A base class for model definition.
 
     Attributes:
         name: The name of the model.
         description: An optional description to explain something about the model.
-        model_type: The type of the model
-        data_type: It explains the data type used by the model
-        granularity: The window used to calculate aggregated metrics
-        features: A list column representing the features set
-        outputs: An OutputType definition to explain the output of the model
-        target: The column used to represent model's target
-        timestamp: The column used to store when prediction was done
-        frameworks: An optional field to describe the frameworks used by the model
-        algorithm: An optional field to explain the algorithm used by the model
-
+        model_type: The type of the model.
+        data_type: The data type used by the model.
+        granularity: The window used to calculate aggregated metrics.
+        features: A list of column definitions representing the features set.
+        outputs: An OutputType definition to explain the output of the model.
+        target: The column used to represent the model's target.
+        timestamp: The column used to store when the prediction was done.
+        frameworks: An optional field to describe the frameworks used by the model.
+        algorithm: An optional field to explain the algorithm used by the model.
     """
 
     name: str
@@ -64,6 +57,26 @@ class BaseModelDefinition(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True, alias_generator=to_camel, protected_namespaces=()
     )
+
+    def get_numerical_features(self) -> List[ColumnDefinition]:
+        """Retrieve all numerical features from the model."""
+        return [feature for feature in self.features if feature.is_numerical()]
+
+    def get_float_features(self) -> List[ColumnDefinition]:
+        """Retrieve all float features from the model."""
+        return [feature for feature in self.features if feature.is_float()]
+
+    def get_int_features(self) -> List[ColumnDefinition]:
+        """Retrieve all integer features from the model."""
+        return [feature for feature in self.features if feature.is_int()]
+
+    def get_categorical_features(self) -> List[ColumnDefinition]:
+        """Retrieve all categorical features from the model."""
+        return [feature for feature in self.features if feature.is_categorical()]
+
+    def get_datetime_features(self) -> List[ColumnDefinition]:
+        """Retrieve all datetime features from the model."""
+        return [feature for feature in self.features if feature.is_datetime()]
 
 
 class CreateModel(BaseModelDefinition):
