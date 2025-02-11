@@ -38,10 +38,12 @@ from .model_definition import (
     Granularity,
     ModelDefinition,
     OutputType,
+    ModelFeatures,  # Added ModelFeatures here
 )
 from .model_type import ModelType
 from .supported_types import SupportedTypes
 from pydantic import BaseModel, ConfigDict, TypeAdapter
+from pydantic.alias_generators import to_camel  # Added import for to_camel
 from typing import List, Optional
 
 class ModelFeatures(BaseModel):
@@ -90,5 +92,5 @@ __all__ = [
     'AwsCredentials',
     'SupportedTypes',
     'FieldType',
-    'ModelFeatures',
+    'ModelFeatures',  # Added ModelFeatures here
 ]
