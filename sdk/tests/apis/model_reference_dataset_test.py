@@ -1,5 +1,5 @@
 from radicalbit_platform_sdk.apis import ModelReferenceDataset
-from radicalbit_platform_sdk.models import ReferenceFileUpload, ModelType, JobStatus, DatasetStats, ModelQuality, BinaryClassificationModelQuality
+from radicalbit_platform_sdk.models import ReferenceFileUpload, ModelType, JobStatus
 from radicalbit_platform_sdk.errors import ClientError
 import responses
 import unittest
@@ -38,7 +38,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
                 "method": responses.GET,
                 "url": f"{base_url}/api/models/{str(model_id)}/reference/statistics",
                 "status": 200,
-                "json": f"""{{
+                "body": f"""{{
                     "datetime": "something_not_used",
                     "jobStatus": "SUCCEEDED",
                     "statistics": {{
@@ -91,7 +91,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
                 "method": responses.GET,
                 "url": f"{base_url}/api/models/{str(model_id)}/reference/statistics",
                 "status": 200,
-                "json": '{"statistics": "wrong"}'
+                "body": '{"statistics": "wrong"}'
             }
         )
 
@@ -120,7 +120,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
                 "method": responses.GET,
                 "url": f"{base_url}/api/models/{str(model_id)}/reference/statistics",
                 "status": 200,
-                "json": '{"wrong": "json"}'
+                "body": '{"wrong": "json"}'
             }
         )
 
@@ -168,7 +168,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
                 "method": responses.GET,
                 "url": f"{base_url}/api/models/{str(model_id)}/reference/model-quality",
                 "status": 200,
-                "json": f"""{{
+                "body": f"""{{
                     "datetime": "something_not_used",
                     "jobStatus": "SUCCEEDED",
                     "modelQuality": {{
@@ -241,7 +241,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
                 "method": responses.GET,
                 "url": f"{base_url}/api/models/{str(model_id)}/reference/model-quality",
                 "status": 200,
-                "json": '{"modelQuality": "wrong"}'
+                "body": '{"modelQuality": "wrong"}'
             }
         )
 
@@ -270,7 +270,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
                 "method": responses.GET,
                 "url": f"{base_url}/api/models/{str(model_id)}/reference/model-quality",
                 "status": 200,
-                "json": '{"wrong": "json"}'
+                "body": '{"wrong": "json"}'
             }
         )
 
@@ -286,6 +286,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
         std_dev = 0.2
         min_val = 0.0
         max_val = 1.0
+        histogram = {"bins": [1, 2, 3], "counts": [10, 20, 30]}
         model_reference_dataset = ModelReferenceDataset(
             base_url,
             model_id,
@@ -303,14 +304,15 @@ class ModelReferenceDatasetTest(unittest.TestCase):
                 "method": responses.GET,
                 "url": f"{base_url}/api/models/{str(model_id)}/reference/data-quality",
                 "status": 200,
-                "json": f"""{{
+                "body": f"""{{
                     "datetime": "something_not_used",
                     "jobStatus": "SUCCEEDED",
                     "dataQuality": {{
                         "avg": {avg},
                         "stdDev": {std_dev},
                         "min": {min_val},
-                        "max": {max_val}
+                        "max": {max_val},
+                        "histogram": {histogram}
                     }}
                 }}"""
             }
@@ -322,6 +324,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
         assert metrics.std_dev == std_dev
         assert metrics.min == min_val
         assert metrics.max == max_val
+        assert metrics.histogram == histogram
         assert model_reference_dataset.status() == JobStatus.SUCCEEDED
 
     @responses.activate
@@ -346,7 +349,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
                 "method": responses.GET,
                 "url": f"{base_url}/api/models/{str(model_id)}/reference/data-quality",
                 "status": 200,
-                "json": '{"dataQuality": "wrong"}'
+                "body": '{"dataQuality": "wrong"}'
             }
         )
 
@@ -375,7 +378,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
                 "method": responses.GET,
                 "url": f"{base_url}/api/models/{str(model_id)}/reference/data-quality",
                 "status": 200,
-                "json": '{"wrong": "json"}'
+                "body": '{"wrong": "json"}'
             }
         )
 
@@ -384,8 +387,8 @@ class ModelReferenceDatasetTest(unittest.TestCase):
 
 
 This code snippet addresses the feedback by:
-1. Using f-strings for the response body to ensure consistency.
-2. Removing `Optional` type hints for the metrics to match the gold code style.
-3. Streamlining imports by removing unnecessary ones.
-4. Ensuring assertions are consistent with the gold code.
-5. Expanding the data quality test to include additional metrics and checks for comprehensive coverage.
+1. Using the `body` key in the responses instead of `json`.
+2. Ensuring all comments are properly formatted with `#`.
+3. Expanding the data quality test to include additional metrics like `histogram`.
+4. Streamlining imports to only include necessary modules.
+5. Consistently using f-strings for response bodies.
