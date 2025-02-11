@@ -29,6 +29,11 @@ class ModelFeatures:
     def __init__(self, features: List[ColumnDefinition]) -> None:
         self.features = features
 
+    def model_dump_json(self) -> str:
+        """Serialize the ModelFeatures instance to a JSON string."""
+        adapter = TypeAdapter(List[ColumnDefinition])
+        return adapter.model_dump_json(self.features)
+
 
 class Model:
     def __init__(self, base_url: str, definition: ModelDefinition) -> None:
@@ -196,35 +201,9 @@ class Model:
         if object_name is None:
             object_name = f'{self.__uuid}/reference/{os.path.basename(file_name)}'
 
-        try:
-            s3_client = boto3.client(
-                's3',
-                aws_access_key_id=(
-                    None
-                    if aws_credentials is None
-                    else aws_credentials.access_key_id
-                ),
-                aws_secret_access_key=(
-                    None
-                    if aws_credentials is None
-                    else aws_credentials.secret_access_key
-                ),
-                region_name=(
-                    None
-                    if aws_credentials is None
-                    else aws_credentials.default_region
-                ),
-                endpoint_url=(
-                    None
-                    if aws_credentials is None
-                    else (
-                        None
-                        if aws_credentials.endpoint_url is None
-                        else aws_credentials.endpoint_url
-                    )
-                ),
-            )
+        s3_client = self.__get_s3_client(aws_credentials)
 
+        try:
             s3_client.upload_file(
                 file_name,
                 bucket,
@@ -261,32 +240,9 @@ class Model:
         """
 
         url_parts = dataset_url.replace('s3://', '').split('/')
+        s3_client = self.__get_s3_client(aws_credentials)
 
         try:
-            s3_client = boto3.client(
-                's3',
-                aws_access_key_id=(
-                    None if aws_credentials is None else aws_credentials.access_key_id
-                ),
-                aws_secret_access_key=(
-                    None
-                    if aws_credentials is None
-                    else aws_credentials.secret_access_key
-                ),
-                region_name=(
-                    None if aws_credentials is None else aws_credentials.default_region
-                ),
-                endpoint_url=(
-                    None
-                    if aws_credentials is None
-                    else (
-                        None
-                        if aws_credentials.endpoint_url is None
-                        else aws_credentials.endpoint_url
-                    )
-                ),
-            )
-
             response = s3_client.get_object(
                 Bucket=url_parts[0], Key='/'.join(url_parts[1:])
             )
@@ -346,35 +302,9 @@ class Model:
         if object_name is None:
             object_name = f'{self.__uuid}/current/{os.path.basename(file_name)}'
 
-        try:
-            s3_client = boto3.client(
-                's3',
-                aws_access_key_id=(
-                    None
-                    if aws_credentials is None
-                    else aws_credentials.access_key_id
-                ),
-                aws_secret_access_key=(
-                    None
-                    if aws_credentials is None
-                    else aws_credentials.secret_access_key
-                ),
-                region_name=(
-                    None
-                    if aws_credentials is None
-                    else aws_credentials.default_region
-                ),
-                endpoint_url=(
-                    None
-                    if aws_credentials is None
-                    else (
-                        None
-                        if aws_credentials.endpoint_url is None
-                        else aws_credentials.endpoint_url
-                    )
-                ),
-            )
+        s3_client = self.__get_s3_client(aws_credentials)
 
+        try:
             s3_client.upload_file(
                 file_name,
                 bucket,
@@ -413,32 +343,9 @@ class Model:
         """
 
         url_parts = dataset_url.replace('s3://', '').split('/')
+        s3_client = self.__get_s3_client(aws_credentials)
 
         try:
-            s3_client = boto3.client(
-                's3',
-                aws_access_key_id=(
-                    None if aws_credentials is None else aws_credentials.access_key_id
-                ),
-                aws_secret_access_key=(
-                    None
-                    if aws_credentials is None
-                    else aws_credentials.secret_access_key
-                ),
-                region_name=(
-                    None if aws_credentials is None else aws_credentials.default_region
-                ),
-                endpoint_url=(
-                    None
-                    if aws_credentials is None
-                    else (
-                        None
-                        if aws_credentials.endpoint_url is None
-                        else aws_credentials.endpoint_url
-                    )
-                ),
-            )
-
             response = s3_client.get_object(
                 Bucket=url_parts[0], Key='/'.join(url_parts[1:])
             )
@@ -520,3 +427,28 @@ class Model:
         model_columns = self.__features + self.__outputs.output
         model_columns.append(self.__target)
         return [model_column.name for model_column in model_columns]
+
+    def __get_s3_client(self, aws_credentials: Optional[AwsCredentials] = None):
+        return boto3.client(
+            's3',
+            aws_access_key_id=(
+                None if aws_credentials is None else aws_credentials.access_key_id
+            ),
+            aws_secret_access_key=(
+                None
+                if aws_credentials is None
+                else aws_credentials.secret_access_key
+            ),
+            region_name=(
+                None if aws_credentials is None else aws_credentials.default_region
+            ),
+            endpoint_url=(
+                None
+                if aws_credentials is None
+                else (
+                    None
+                    if aws_credentials.endpoint_url is None
+                    else aws_credentials.endpoint_url
+                )
+            ),
+        )
