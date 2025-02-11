@@ -65,25 +65,31 @@ class ModelReferenceDataset:
                         response_json["statistics"]
                     )
                 else:
-                    raise ClientError("Response does not contain 'statistics' key")
-            except KeyError as e:
-                raise ClientError(f"Unable to parse response: {response.text}") from e
-            except ValidationError as e:
-                raise ClientError(f"Unable to parse response: {response.text}") from e
+                    return job_status, None
+            except (KeyError, ValidationError) as _:
+                raise ClientError(f"Unable to parse response: {response.text}")
 
         match self.__status:
             case JobStatus.ERROR:
                 self.__statistics = None
-            case JobStatus.SUCCEEDED | JobStatus.IMPORTING:
-                if self.__statistics is None or self.__status == JobStatus.IMPORTING:
-                    status, stats = invoke(
+            case JobStatus.SUCCEEDED:
+                if self.__statistics is None:
+                    _, stats = invoke(
                         method="GET",
                         url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/statistics",
                         valid_response_code=200,
                         func=__callback,
                     )
-                    self.__status = status
                     self.__statistics = stats
+            case JobStatus.IMPORTING:
+                status, stats = invoke(
+                    method="GET",
+                    url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/statistics",
+                    valid_response_code=200,
+                    func=__callback,
+                )
+                self.__status = status
+                self.__statistics = stats
 
         return self.__statistics
 
@@ -111,25 +117,31 @@ class ModelReferenceDataset:
                             "Unable to parse get metrics for non-binary models"
                         )
                 else:
-                    raise ClientError("Response does not contain 'dataQuality' key")
-            except KeyError as e:
-                raise ClientError(f"Unable to parse response: {response.text}") from e
-            except ValidationError as e:
-                raise ClientError(f"Unable to parse response: {response.text}") from e
+                    return job_status, None
+            except (KeyError, ValidationError) as _:
+                raise ClientError(f"Unable to parse response: {response.text}")
 
         match self.__status:
             case JobStatus.ERROR:
                 self.__data_metrics = None
-            case JobStatus.SUCCEEDED | JobStatus.IMPORTING:
-                if self.__data_metrics is None or self.__status == JobStatus.IMPORTING:
-                    status, metrics = invoke(
+            case JobStatus.SUCCEEDED:
+                if self.__data_metrics is None:
+                    _, metrics = invoke(
                         method="GET",
                         url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/data-quality",
                         valid_response_code=200,
                         func=__callback,
                     )
-                    self.__status = status
                     self.__data_metrics = metrics
+            case JobStatus.IMPORTING:
+                status, metrics = invoke(
+                    method="GET",
+                    url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/data-quality",
+                    valid_response_code=200,
+                    func=__callback,
+                )
+                self.__status = status
+                self.__data_metrics = metrics
 
         return self.__data_metrics
 
@@ -159,24 +171,30 @@ class ModelReferenceDataset:
                             "Unable to parse get metrics for non-binary models"
                         )
                 else:
-                    raise ClientError("Response does not contain 'modelQuality' key")
-            except KeyError as e:
-                raise ClientError(f"Unable to parse response: {response.text}") from e
-            except ValidationError as e:
-                raise ClientError(f"Unable to parse response: {response.text}") from e
+                    return job_status, None
+            except (KeyError, ValidationError) as _:
+                raise ClientError(f"Unable to parse response: {response.text}")
 
         match self.__status:
             case JobStatus.ERROR:
                 self.__model_metrics = None
-            case JobStatus.SUCCEEDED | JobStatus.IMPORTING:
-                if self.__model_metrics is None or self.__status == JobStatus.IMPORTING:
-                    status, metrics = invoke(
+            case JobStatus.SUCCEEDED:
+                if self.__model_metrics is None:
+                    _, metrics = invoke(
                         method="GET",
                         url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/model-quality",
                         valid_response_code=200,
                         func=__callback,
                     )
-                    self.__status = status
                     self.__model_metrics = metrics
+            case JobStatus.IMPORTING:
+                status, metrics = invoke(
+                    method="GET",
+                    url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/model-quality",
+                    valid_response_code=200,
+                    func=__callback,
+                )
+                self.__status = status
+                self.__model_metrics = metrics
 
         return self.__model_metrics
