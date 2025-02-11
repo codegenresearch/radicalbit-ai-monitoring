@@ -65,24 +65,25 @@ class ModelReferenceDataset:
                         response_json["statistics"]
                     )
                 else:
-                    return job_status, None
-            except KeyError as e:
-                raise ClientError(f"Response missing expected key: {e}") from e
-            except ValidationError as e:
-                raise ClientError(f"Validation error in response: {e}") from e
+                    raise ClientError(f"Response does not contain 'statistics' key: {response.text}")
+            except KeyError as _:
+                raise ClientError(f"Unable to parse response: {response.text}")
+            except ValidationError as _:
+                raise ClientError(f"Unable to parse response: {response.text}")
 
-        if self.__status is JobStatus.ERROR:
-            self.__statistics = None
-        elif self.__status in (JobStatus.SUCCEEDED, JobStatus.IMPORTING):
-            if self.__statistics is None or self.__status is JobStatus.IMPORTING:
-                status, stats = invoke(
-                    method="GET",
-                    url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/statistics",
-                    valid_response_code=200,
-                    func=__callback,
-                )
-                self.__status = status
-                self.__statistics = stats
+        match self.__status:
+            case JobStatus.ERROR:
+                self.__statistics = None
+            case JobStatus.SUCCEEDED | JobStatus.IMPORTING:
+                if self.__statistics is None or self.__status is JobStatus.IMPORTING:
+                    status, stats = invoke(
+                        method="GET",
+                        url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/statistics",
+                        valid_response_code=200,
+                        func=__callback,
+                    )
+                    self.__status = status
+                    self.__statistics = stats
 
         return self.__statistics
 
@@ -110,24 +111,25 @@ class ModelReferenceDataset:
                             "Unable to parse get metrics for non-binary models"
                         )
                 else:
-                    return job_status, None
-            except KeyError as e:
-                raise ClientError(f"Response missing expected key: {e}") from e
-            except ValidationError as e:
-                raise ClientError(f"Validation error in response: {e}") from e
+                    raise ClientError(f"Response does not contain 'dataQuality' key: {response.text}")
+            except KeyError as _:
+                raise ClientError(f"Unable to parse response: {response.text}")
+            except ValidationError as _:
+                raise ClientError(f"Unable to parse response: {response.text}")
 
-        if self.__status is JobStatus.ERROR:
-            self.__data_metrics = None
-        elif self.__status in (JobStatus.SUCCEEDED, JobStatus.IMPORTING):
-            if self.__data_metrics is None or self.__status is JobStatus.IMPORTING:
-                status, metrics = invoke(
-                    method="GET",
-                    url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/data-quality",
-                    valid_response_code=200,
-                    func=__callback,
-                )
-                self.__status = status
-                self.__data_metrics = metrics
+        match self.__status:
+            case JobStatus.ERROR:
+                self.__data_metrics = None
+            case JobStatus.SUCCEEDED | JobStatus.IMPORTING:
+                if self.__data_metrics is None or self.__status is JobStatus.IMPORTING:
+                    status, metrics = invoke(
+                        method="GET",
+                        url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/data-quality",
+                        valid_response_code=200,
+                        func=__callback,
+                    )
+                    self.__status = status
+                    self.__data_metrics = metrics
 
         return self.__data_metrics
 
@@ -157,23 +159,24 @@ class ModelReferenceDataset:
                             "Unable to parse get metrics for non-binary models"
                         )
                 else:
-                    return job_status, None
-            except KeyError as e:
-                raise ClientError(f"Response missing expected key: {e}") from e
-            except ValidationError as e:
-                raise ClientError(f"Validation error in response: {e}") from e
+                    raise ClientError(f"Response does not contain 'modelQuality' key: {response.text}")
+            except KeyError as _:
+                raise ClientError(f"Unable to parse response: {response.text}")
+            except ValidationError as _:
+                raise ClientError(f"Unable to parse response: {response.text}")
 
-        if self.__status is JobStatus.ERROR:
-            self.__model_metrics = None
-        elif self.__status in (JobStatus.SUCCEEDED, JobStatus.IMPORTING):
-            if self.__model_metrics is None or self.__status is JobStatus.IMPORTING:
-                status, metrics = invoke(
-                    method="GET",
-                    url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/model-quality",
-                    valid_response_code=200,
-                    func=__callback,
-                )
-                self.__status = status
-                self.__model_metrics = metrics
+        match self.__status:
+            case JobStatus.ERROR:
+                self.__model_metrics = None
+            case JobStatus.SUCCEEDED | JobStatus.IMPORTING:
+                if self.__model_metrics is None or self.__status is JobStatus.IMPORTING:
+                    status, metrics = invoke(
+                        method="GET",
+                        url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/model-quality",
+                        valid_response_code=200,
+                        func=__callback,
+                    )
+                    self.__status = status
+                    self.__model_metrics = metrics
 
         return self.__model_metrics
