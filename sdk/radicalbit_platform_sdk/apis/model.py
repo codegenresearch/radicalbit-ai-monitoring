@@ -94,6 +94,15 @@ class Model:
             func=lambda _: None,
         )
 
+    def update_features(self, new_features: List[ColumnDefinition]) -> None:
+        """Update the features of the model.
+
+        :param new_features: A list of new features to update the model with.
+        :return: None
+        """
+        self.__features = new_features
+        # Optionally, add validation or processing here if needed
+
     def get_reference_datasets(self) -> List[ModelReferenceDataset]:
         def __callback(response: requests.Response) -> List[ModelReferenceDataset]:
             try:
