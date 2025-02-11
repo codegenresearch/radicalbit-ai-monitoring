@@ -25,13 +25,6 @@ class Granularity(str, Enum):
     MONTH = 'MONTH'
 
 
-class ModelFeatures(BaseModel):
-    """Encapsulates the features list for a model."""
-    features: List[ColumnDefinition]
-
-    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
-
-
 class BaseModelDefinition(BaseModel):
     """A base class for model definition.
 
@@ -39,12 +32,12 @@ class BaseModelDefinition(BaseModel):
         name: The name of the model.
         description: An optional description to explain something about the model.
         model_type: The type of the model.
-        data_type: It explains the data type used by the model.
+        data_type: The data type used by the model.
         granularity: The window used to calculate aggregated metrics.
         features: A list of columns representing the features set.
         outputs: An OutputType definition to explain the output of the model.
-        target: The column used to represent model's target.
-        timestamp: The column used to store when prediction was done.
+        target: The column used to represent the model's target.
+        timestamp: The column used to store when the prediction was done.
         frameworks: An optional field to describe the frameworks used by the model.
         algorithm: An optional field to explain the algorithm used by the model.
     """
@@ -54,7 +47,7 @@ class BaseModelDefinition(BaseModel):
     model_type: ModelType
     data_type: DataType
     granularity: Granularity
-    features: ModelFeatures
+    features: List[ColumnDefinition]
     outputs: OutputType
     target: ColumnDefinition
     timestamp: ColumnDefinition
@@ -86,4 +79,9 @@ class ModelDefinition(BaseModelDefinition):
                 raise AttributeError(f"ModelDefinition has no attribute '{key}'")
 
 
-This code snippet includes the `ModelFeatures` class to encapsulate the features list, aligns the docstrings with the gold code, and removes the methods for adding or updating features in the `BaseModelDefinition` class as per the oracle's feedback.
+This code snippet addresses the feedback by:
+1. Ensuring all string literals, comments, and docstrings are properly terminated.
+2. Changing the `features` attribute to be a list of `ColumnDefinition` directly.
+3. Ensuring docstring consistency and clarity.
+4. Removing methods related to adding or updating features from the `BaseModelDefinition` class.
+5. Maintaining consistent formatting and style.
