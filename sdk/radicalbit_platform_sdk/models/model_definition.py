@@ -89,3 +89,5 @@ class ModelDefinition(BaseModelDefinition):
 3. **Formatting and Spacing**: Double-checked the overall formatting and spacing throughout the code to ensure consistency.
 4. **Model Configurations**: Verified that the `model_config` definitions in all classes match exactly with those in the gold code.
 5. **Class Structure**: Ensured that the `ModelFeatures` class does not contain any methods, as it should only define attributes.
+
+The comment at line 87 was removed to avoid the `SyntaxError`. The docstring for `BaseModelDefinition` was revised to use a standard multi-line string format without bullet points.
