@@ -118,5 +118,5 @@ This code snippet addresses the feedback by:
 1. Ensuring the import order and structure are consistent with the gold code.
 2. Placing `ModelFeatures` in the correct position within the `from .model_definition import` section.
 3. Ensuring the `__all__` list matches the gold code exactly.
-4. Removing unnecessary comments that do not contribute to the clarity of the code.
+4. Removing the misplaced comment that caused the syntax error.
 5. Ensuring the functionality and naming conventions align with the gold code.
