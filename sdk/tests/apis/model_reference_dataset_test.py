@@ -34,26 +34,24 @@ class ModelReferenceDatasetTest(unittest.TestCase):
         )
 
         responses.add(
-            **{
-                "method": responses.GET,
-                "url": f"{base_url}/api/models/{str(model_id)}/reference/statistics",
-                "status": 200,
-                "body": f"""{{
-                    "datetime": "something_not_used",
-                    "jobStatus": "SUCCEEDED",
-                    "statistics": {{
-                        "nVariables": {n_variables},
-                        "nObservations": {n_observations},
-                        "missingCells": {missing_cells},
-                        "missingCellsPerc": {missing_cells_perc},
-                        "duplicateRows": {duplicate_rows},
-                        "duplicateRowsPerc": {duplicate_rows_perc},
-                        "numeric": {numeric},
-                        "categorical": {categorical},
-                        "datetime": {datetime}
-                    }}
-                }}"""
-            }
+            responses.GET,
+            f"{base_url}/api/models/{str(model_id)}/reference/statistics",
+            json={
+                "datetime": "something_not_used",
+                "jobStatus": "SUCCEEDED",
+                "statistics": {
+                    "nVariables": n_variables,
+                    "nObservations": n_observations,
+                    "missingCells": missing_cells,
+                    "missingCellsPerc": missing_cells_perc,
+                    "duplicateRows": duplicate_rows,
+                    "duplicateRowsPerc": duplicate_rows_perc,
+                    "numeric": numeric,
+                    "categorical": categorical,
+                    "datetime": datetime
+                }
+            },
+            status=200
         )
 
         stats = model_reference_dataset.statistics()
@@ -87,12 +85,10 @@ class ModelReferenceDatasetTest(unittest.TestCase):
         )
 
         responses.add(
-            **{
-                "method": responses.GET,
-                "url": f"{base_url}/api/models/{str(model_id)}/reference/statistics",
-                "status": 200,
-                "body": '{"statistics": "wrong"}'
-            }
+            responses.GET,
+            f"{base_url}/api/models/{str(model_id)}/reference/statistics",
+            json={"statistics": "wrong"},
+            status=200
         )
 
         with self.assertRaises(ClientError):
@@ -116,12 +112,10 @@ class ModelReferenceDatasetTest(unittest.TestCase):
         )
 
         responses.add(
-            **{
-                "method": responses.GET,
-                "url": f"{base_url}/api/models/{str(model_id)}/reference/statistics",
-                "status": 200,
-                "body": '{"wrong": "json"}'
-            }
+            responses.GET,
+            f"{base_url}/api/models/{str(model_id)}/reference/statistics",
+            json={"wrong": "json"},
+            status=200
         )
 
         with self.assertRaises(ClientError):
@@ -164,36 +158,34 @@ class ModelReferenceDatasetTest(unittest.TestCase):
         )
 
         responses.add(
-            **{
-                "method": responses.GET,
-                "url": f"{base_url}/api/models/{str(model_id)}/reference/model-quality",
-                "status": 200,
-                "body": f"""{{
-                    "datetime": "something_not_used",
-                    "jobStatus": "SUCCEEDED",
-                    "modelQuality": {{
-                        "f1": {f1},
-                        "accuracy": {accuracy},
-                        "precision": {precision},
-                        "recall": {recall},
-                        "fMeasure": {f_measure},
-                        "weightedPrecision": {weighted_precision},
-                        "weightedRecall": {weighted_recall},
-                        "weightedFMeasure": {weighted_f_measure},
-                        "weightedTruePositiveRate": {weighted_true_positive_rate},
-                        "weightedFalsePositiveRate": {weighted_false_positive_rate},
-                        "truePositiveRate": {true_positive_rate},
-                        "falsePositiveRate": {false_positive_rate},
-                        "areaUnderRoc": {area_under_roc},
-                        "areaUnderPr": {area_under_pr},
-                        "truePositiveCount": {true_positive_count},
-                        "falsePositiveCount": {false_positive_count},
-                        "trueNegativeCount": {true_negative_count},
-                        "falseNegativeCount": {false_negative_count},
-                        "histogram": {histogram}
-                    }}
-                }}"""
-            }
+            responses.GET,
+            f"{base_url}/api/models/{str(model_id)}/reference/model-quality",
+            json={
+                "datetime": "something_not_used",
+                "jobStatus": "SUCCEEDED",
+                "modelQuality": {
+                    "f1": f1,
+                    "accuracy": accuracy,
+                    "precision": precision,
+                    "recall": recall,
+                    "fMeasure": f_measure,
+                    "weightedPrecision": weighted_precision,
+                    "weightedRecall": weighted_recall,
+                    "weightedFMeasure": weighted_f_measure,
+                    "weightedTruePositiveRate": weighted_true_positive_rate,
+                    "weightedFalsePositiveRate": weighted_false_positive_rate,
+                    "truePositiveRate": true_positive_rate,
+                    "falsePositiveRate": false_positive_rate,
+                    "areaUnderRoc": area_under_roc,
+                    "areaUnderPr": area_under_pr,
+                    "truePositiveCount": true_positive_count,
+                    "falsePositiveCount": false_positive_count,
+                    "trueNegativeCount": true_negative_count,
+                    "falseNegativeCount": false_negative_count,
+                    "histogram": histogram
+                }
+            },
+            status=200
         )
 
         metrics = model_reference_dataset.model_quality()
@@ -237,12 +229,10 @@ class ModelReferenceDatasetTest(unittest.TestCase):
         )
 
         responses.add(
-            **{
-                "method": responses.GET,
-                "url": f"{base_url}/api/models/{str(model_id)}/reference/model-quality",
-                "status": 200,
-                "body": '{"modelQuality": "wrong"}'
-            }
+            responses.GET,
+            f"{base_url}/api/models/{str(model_id)}/reference/model-quality",
+            json={"modelQuality": "wrong"},
+            status=200
         )
 
         with self.assertRaises(ClientError):
@@ -266,12 +256,10 @@ class ModelReferenceDatasetTest(unittest.TestCase):
         )
 
         responses.add(
-            **{
-                "method": responses.GET,
-                "url": f"{base_url}/api/models/{str(model_id)}/reference/model-quality",
-                "status": 200,
-                "body": '{"wrong": "json"}'
-            }
+            responses.GET,
+            f"{base_url}/api/models/{str(model_id)}/reference/model-quality",
+            json={"wrong": "json"},
+            status=200
         )
 
         with self.assertRaises(ClientError):
@@ -302,24 +290,22 @@ class ModelReferenceDatasetTest(unittest.TestCase):
         )
 
         responses.add(
-            **{
-                "method": responses.GET,
-                "url": f"{base_url}/api/models/{str(model_id)}/reference/data-quality",
-                "status": 200,
-                "body": f"""{{
-                    "datetime": "something_not_used",
-                    "jobStatus": "SUCCEEDED",
-                    "dataQuality": {{
-                        "avg": {avg},
-                        "stdDev": {std_dev},
-                        "min": {min_val},
-                        "max": {max_val},
-                        "histogram": {histogram},
-                        "classMetrics": {class_metrics},
-                        "featureMetrics": {feature_metrics}
-                    }}
-                }}"""
-            }
+            responses.GET,
+            f"{base_url}/api/models/{str(model_id)}/reference/data-quality",
+            json={
+                "datetime": "something_not_used",
+                "jobStatus": "SUCCEEDED",
+                "dataQuality": {
+                    "avg": avg,
+                    "stdDev": std_dev,
+                    "min": min_val,
+                    "max": max_val,
+                    "histogram": histogram,
+                    "classMetrics": class_metrics,
+                    "featureMetrics": feature_metrics
+                }
+            },
+            status=200
         )
 
         metrics = model_reference_dataset.data_quality()
@@ -351,12 +337,10 @@ class ModelReferenceDatasetTest(unittest.TestCase):
         )
 
         responses.add(
-            **{
-                "method": responses.GET,
-                "url": f"{base_url}/api/models/{str(model_id)}/reference/data-quality",
-                "status": 200,
-                "body": '{"dataQuality": "wrong"}'
-            }
+            responses.GET,
+            f"{base_url}/api/models/{str(model_id)}/reference/data-quality",
+            json={"dataQuality": "wrong"},
+            status=200
         )
 
         with self.assertRaises(ClientError):
@@ -380,12 +364,10 @@ class ModelReferenceDatasetTest(unittest.TestCase):
         )
 
         responses.add(
-            **{
-                "method": responses.GET,
-                "url": f"{base_url}/api/models/{str(model_id)}/reference/data-quality",
-                "status": 200,
-                "body": '{"wrong": "json"}'
-            }
+            responses.GET,
+            f"{base_url}/api/models/{str(model_id)}/reference/data-quality",
+            json={"wrong": "json"},
+            status=200
         )
 
         with self.assertRaises(ClientError):
@@ -401,3 +383,4 @@ This code snippet addresses the feedback by:
 6. Ensuring that all comments are properly formatted with `#`.
 7. Ensuring that all assertions are comprehensive and cover all expected outcomes.
 8. Consistently using `self.assertRaises(ClientError)` for exception testing.
+9. Using the `json` parameter in `responses.add` to ensure valid JSON formatting.
