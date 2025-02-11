@@ -34,6 +34,8 @@ class ModelFeatures(BaseModel):
 
     features: List[ColumnDefinition]
 
+    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
+
     def get_numerical_features(self) -> List[ColumnDefinition]:
         """Retrieve all numerical features from the model."""
         return [feature for feature in self.features if feature.is_numerical()]
@@ -60,7 +62,7 @@ class BaseModelDefinition(BaseModel):
 
     Attributes:
         name: The name of the model.
-        description: An optional description to explain something about the model.
+        description: An optional description of the model.
         model_type: The type of the model.
         data_type: The data type used by the model.
         granularity: The window used to calculate aggregated metrics.
