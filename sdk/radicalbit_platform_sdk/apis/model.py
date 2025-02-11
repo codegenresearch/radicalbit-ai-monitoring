@@ -79,7 +79,7 @@ class Model:
         return self.__algorithm
 
     def delete(self) -> None:
-        """Delete the actual `Model` from the platform
+        """Delete the actual `Model` from the platform.
 
         :return: None
         """
@@ -95,7 +95,6 @@ class Model:
             try:
                 adapter = TypeAdapter(List[ReferenceFileUpload])
                 references = adapter.validate_python(response.json())
-
                 return [
                     ModelReferenceDataset(
                         self.__base_url, self.__uuid, self.__model_type, ref
@@ -103,7 +102,7 @@ class Model:
                     for ref in references
                 ]
             except ValidationError as e:
-                raise ClientError(f'Unable to parse response: {response.text}') from None
+                raise ClientError(f'Unable to parse response: {response.text}', e)
 
         return invoke(
             method='GET',
@@ -117,7 +116,6 @@ class Model:
             try:
                 adapter = TypeAdapter(List[CurrentFileUpload])
                 references = adapter.validate_python(response.json())
-
                 return [
                     ModelCurrentDataset(
                         self.__base_url, self.__uuid, self.__model_type, ref
@@ -125,7 +123,7 @@ class Model:
                     for ref in references
                 ]
             except ValidationError as e:
-                raise ClientError(f'Unable to parse response: {response.text}') from None
+                raise ClientError(f'Unable to parse response: {response.text}', e)
 
         return invoke(
             method='GET',
@@ -207,15 +205,16 @@ class Model:
                 )
             except BotoClientError as e:
                 raise ClientError(
-                    f'Unable to upload file {file_name} to remote storage: {e}'
-                ) from None
+                    f'Unable to upload file {file_name} to remote storage: {e}',
+                    e,
+                )
             return self.__bind_reference_dataset(
                 f's3://{bucket}/{object_name}', separator
             )
 
         raise ClientError(
             f'File {file_name} not contains all defined columns: {required_headers}'
-        ) from None
+        )
 
     def bind_reference_dataset(
         self,
@@ -223,12 +222,12 @@ class Model:
         aws_credentials: Optional[AwsCredentials] = None,
         separator: str = ',',
     ) -> ModelReferenceDataset:
-        """Bind an existing reference dataset file already uploaded to S3 to a `Model`
+        """Bind an existing reference dataset file already uploaded to S3 to a `Model`.
 
-        :param dataset_url: The url of the file already uploaded inside S3
+        :param dataset_url: The url of the file already uploaded inside S3.
         :param aws_credentials: AWS credentials used to connect to S3 bucket. Default value is None.
-        :param separator: Optional value to define separator used inside CSV file. Default value is ","
-        :return: An instance of `ModelReferenceDataset` representing the reference dataset
+        :param separator: Optional value to define separator used inside CSV file. Default value is ",".
+        :return: An instance of `ModelReferenceDataset` representing the reference dataset.
         """
 
         url_parts = dataset_url.replace('s3://', '').split('/')
@@ -275,11 +274,12 @@ class Model:
 
             raise ClientError(
                 f'File {dataset_url} not contains all defined columns: {required_headers}'
-            ) from None
+            )
         except BotoClientError as e:
             raise ClientError(
-                f'Unable to get file {dataset_url} from remote storage: {e}'
-            ) from None
+                f'Unable to get file {dataset_url} from remote storage: {e}',
+                e,
+            )
 
     def load_current_dataset(
         self,
@@ -296,11 +296,11 @@ class Model:
 
         :param file_name: The name of the reference file.
         :param bucket: The name of the S3 bucket.
-        :param correlation_id_column: The name of the column used for correlation id
+        :param correlation_id_column: The name of the column used for correlation id.
         :param object_name: The optional name of the object uploaded to S3. Default value is None.
         :param aws_credentials: AWS credentials used to connect to S3 bucket. Default value is None.
-        :param separator: Optional value to define separator used inside CSV file. Default value is ","
-        :return: An instance of `ModelReferenceDataset` representing the reference dataset
+        :param separator: Optional value to define separator used inside CSV file. Default value is ",".
+        :return: An instance of `ModelReferenceDataset` representing the reference dataset.
         """
 
         file_headers = pd.read_csv(
@@ -359,15 +359,16 @@ class Model:
                 )
             except BotoClientError as e:
                 raise ClientError(
-                    f'Unable to upload file {file_name} to remote storage: {e}'
-                ) from None
+                    f'Unable to upload file {file_name} to remote storage: {e}',
+                    e,
+                )
             return self.__bind_current_dataset(
                 f's3://{bucket}/{object_name}', separator, correlation_id_column
             )
 
         raise ClientError(
             f'File {file_name} not contains all defined columns: {required_headers}'
-        ) from None
+        )
 
     def bind_current_dataset(
         self,
@@ -376,13 +377,13 @@ class Model:
         aws_credentials: Optional[AwsCredentials] = None,
         separator: str = ',',
     ) -> ModelCurrentDataset:
-        """Bind an existing current dataset file already uploaded to S3 to a `Model`
+        """Bind an existing current dataset file already uploaded to S3 to a `Model`.
 
-        :param dataset_url: The url of the file already uploaded inside S3
-        :param correlation_id_column: The name of the column used for correlation id
+        :param dataset_url: The url of the file already uploaded inside S3.
+        :param correlation_id_column: The name of the column used for correlation id.
         :param aws_credentials: AWS credentials used to connect to S3 bucket. Default value is None.
-        :param separator: Optional value to define separator used inside CSV file. Default value is ","
-        :return: An instance of `ModelReferenceDataset` representing the reference dataset
+        :param separator: Optional value to define separator used inside CSV file. Default value is ",".
+        :return: An instance of `ModelReferenceDataset` representing the reference dataset.
         """
 
         url_parts = dataset_url.replace('s3://', '').split('/')
@@ -433,11 +434,12 @@ class Model:
 
             raise ClientError(
                 f'File {dataset_url} not contains all defined columns: {required_headers}'
-            ) from None
+            )
         except BotoClientError as e:
             raise ClientError(
-                f'Unable to get file {dataset_url} from remote storage: {e}'
-            ) from None
+                f'Unable to get file {dataset_url} from remote storage: {e}',
+                e,
+            )
 
     def update_features(self, new_features: List[ColumnDefinition]) -> None:
         """Update the features of the model.
@@ -468,7 +470,7 @@ class Model:
                     self.__base_url, self.__uuid, self.__model_type, response
                 )
             except ValidationError as e:
-                raise ClientError(f'Unable to parse response: {response.text}') from None
+                raise ClientError(f'Unable to parse response: {response.text}', e)
 
         file_ref = FileReference(file_url=dataset_url, separator=separator)
 
@@ -493,7 +495,7 @@ class Model:
                     self.__base_url, self.__uuid, self.__model_type, response
                 )
             except ValidationError as e:
-                raise ClientError(f'Unable to parse response: {response.text}') from None
+                raise ClientError(f'Unable to parse response: {response.text}', e)
 
         file_ref = FileReference(
             file_url=dataset_url,
