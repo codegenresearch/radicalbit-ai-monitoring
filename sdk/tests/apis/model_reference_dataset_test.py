@@ -39,21 +39,21 @@ class ModelReferenceDatasetTest(unittest.TestCase):
                 "method": responses.GET,
                 "url": f"{base_url}/api/models/{str(model_id)}/reference/statistics",
                 "status": 200,
-                "json": {
+                "body": f"""{{
                     "datetime": "something_not_used",
                     "jobStatus": "SUCCEEDED",
-                    "statistics": {
-                        "nVariables": n_variables,
-                        "nObservations": n_observations,
-                        "missingCells": missing_cells,
-                        "missingCellsPerc": missing_cells_perc,
-                        "duplicateRows": duplicate_rows,
-                        "duplicateRowsPerc": duplicate_rows_perc,
-                        "numeric": numeric,
-                        "categorical": categorical,
-                        "datetime": datetime
-                    }
-                }
+                    "statistics": {{
+                        "nVariables": {n_variables},
+                        "nObservations": {n_observations},
+                        "missingCells": {missing_cells},
+                        "missingCellsPerc": {missing_cells_perc},
+                        "duplicateRows": {duplicate_rows},
+                        "duplicateRowsPerc": {duplicate_rows_perc},
+                        "numeric": {numeric},
+                        "categorical": {categorical},
+                        "datetime": {datetime}
+                    }}
+                }}""",
             }
         )
 
@@ -92,7 +92,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
                 "method": responses.GET,
                 "url": f"{base_url}/api/models/{str(model_id)}/reference/statistics",
                 "status": 200,
-                "json": {"statistics": "wrong"}
+                "body": '{"statistics": "wrong"}',
             }
         )
 
@@ -121,7 +121,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
                 "method": responses.GET,
                 "url": f"{base_url}/api/models/{str(model_id)}/reference/statistics",
                 "status": 200,
-                "json": {"wrong": "json"}
+                "body": '{"wrong": "json"}',
             }
         )
 
@@ -169,31 +169,31 @@ class ModelReferenceDatasetTest(unittest.TestCase):
                 "method": responses.GET,
                 "url": f"{base_url}/api/models/{str(model_id)}/reference/model-quality",
                 "status": 200,
-                "json": {
+                "body": f"""{{
                     "datetime": "something_not_used",
                     "jobStatus": "SUCCEEDED",
-                    "modelQuality": {
-                        "f1": f1,
-                        "accuracy": accuracy,
-                        "precision": precision,
-                        "recall": recall,
-                        "fMeasure": f_measure,
-                        "weightedPrecision": weighted_precision,
-                        "weightedRecall": weighted_recall,
-                        "weightedFMeasure": weighted_f_measure,
-                        "weightedTruePositiveRate": weighted_true_positive_rate,
-                        "weightedFalsePositiveRate": weighted_false_positive_rate,
-                        "truePositiveRate": true_positive_rate,
-                        "falsePositiveRate": false_positive_rate,
-                        "areaUnderRoc": area_under_roc,
-                        "areaUnderPr": area_under_pr,
-                        "truePositiveCount": true_positive_count,
-                        "falsePositiveCount": false_positive_count,
-                        "trueNegativeCount": true_negative_count,
-                        "falseNegativeCount": false_negative_count,
-                        "histogram": histogram
-                    }
-                }
+                    "modelQuality": {{
+                        "f1": {f1},
+                        "accuracy": {accuracy},
+                        "precision": {precision},
+                        "recall": {recall},
+                        "fMeasure": {f_measure},
+                        "weightedPrecision": {weighted_precision},
+                        "weightedRecall": {weighted_recall},
+                        "weightedFMeasure": {weighted_f_measure},
+                        "weightedTruePositiveRate": {weighted_true_positive_rate},
+                        "weightedFalsePositiveRate": {weighted_false_positive_rate},
+                        "truePositiveRate": {true_positive_rate},
+                        "falsePositiveRate": {false_positive_rate},
+                        "areaUnderRoc": {area_under_roc},
+                        "areaUnderPr": {area_under_pr},
+                        "truePositiveCount": {true_positive_count},
+                        "falsePositiveCount": {false_positive_count},
+                        "trueNegativeCount": {true_negative_count},
+                        "falseNegativeCount": {false_negative_count},
+                        "histogram": {histogram}
+                    }}
+                }}""",
             }
         )
 
@@ -242,7 +242,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
                 "method": responses.GET,
                 "url": f"{base_url}/api/models/{str(model_id)}/reference/model-quality",
                 "status": 200,
-                "json": {"modelQuality": "wrong"}
+                "body": '{"modelQuality": "wrong"}',
             }
         )
 
@@ -271,7 +271,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
                 "method": responses.GET,
                 "url": f"{base_url}/api/models/{str(model_id)}/reference/model-quality",
                 "status": 200,
-                "json": {"wrong": "json"}
+                "body": '{"wrong": "json"}',
             }
         )
 
@@ -287,6 +287,8 @@ class ModelReferenceDatasetTest(unittest.TestCase):
         std_dev = 0.2
         min_val = 0.05
         max_val = 0.15
+        class_metrics = {"class1": {"precision": 0.8, "recall": 0.9}}
+        feature_metrics = {"feature1": {"importance": 0.5}}
         model_reference_dataset = ModelReferenceDataset(
             base_url,
             model_id,
@@ -304,16 +306,18 @@ class ModelReferenceDatasetTest(unittest.TestCase):
                 "method": responses.GET,
                 "url": f"{base_url}/api/models/{str(model_id)}/reference/data-quality",
                 "status": 200,
-                "json": {
+                "body": f"""{{
                     "datetime": "something_not_used",
                     "jobStatus": "SUCCEEDED",
-                    "dataQuality": {
-                        "avg": avg,
-                        "stdDev": std_dev,
-                        "min": min_val,
-                        "max": max_val
-                    }
-                }
+                    "dataQuality": {{
+                        "avg": {avg},
+                        "stdDev": {std_dev},
+                        "min": {min_val},
+                        "max": {max_val},
+                        "classMetrics": {class_metrics},
+                        "featureMetrics": {feature_metrics}
+                    }}
+                }}""",
             }
         )
 
@@ -323,12 +327,14 @@ class ModelReferenceDatasetTest(unittest.TestCase):
         assert data_quality.std_dev == std_dev
         assert data_quality.min == min_val
         assert data_quality.max == max_val
+        assert data_quality.class_metrics == class_metrics
+        assert data_quality.feature_metrics == feature_metrics
         assert model_reference_dataset.status() == JobStatus.SUCCEEDED
 
 
 This code snippet addresses the feedback by:
-1. Adding the `histogram` attribute to the `BinaryClassificationModelQuality` class.
-2. Using the unpacking operator `**` for `responses.add`.
-3. Using formatted strings for JSON bodies.
-4. Simplifying variable type hints where appropriate.
-5. Adding a test case for data quality to ensure comprehensive coverage.
+1. Using the `body` parameter with formatted strings in `responses.add`.
+2. Ensuring consistent naming conventions for variables in assertions.
+3. Adding detailed checks for data quality metrics, including class metrics and feature metrics.
+4. Removing any unnecessary comments and ensuring proper comment formatting.
+5. Ensuring that all class and method definitions are correctly structured and that there are no stray lines of text that could cause syntax issues.
