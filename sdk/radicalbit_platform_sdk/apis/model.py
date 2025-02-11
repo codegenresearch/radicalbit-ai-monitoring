@@ -188,7 +188,7 @@ class Model:
             )
 
         raise ClientError(
-            f'File {file_name} does not contain all defined columns: {required_headers}'
+            f'File {file_name} not contains all defined columns: {required_headers}'
         )
 
     def bind_reference_dataset(
@@ -226,7 +226,7 @@ class Model:
                 return self.__bind_reference_dataset(dataset_url, separator)
 
             raise ClientError(
-                f'File {dataset_url} does not contain all defined columns: {required_headers}'
+                f'File {dataset_url} not contains all defined columns: {required_headers}'
             )
         except BotoClientError as e:
             raise ClientError(
@@ -292,7 +292,7 @@ class Model:
             )
 
         raise ClientError(
-            f'File {file_name} does not contain all defined columns: {required_headers}'
+            f'File {file_name} not contains all defined columns: {required_headers}'
         )
 
     def bind_current_dataset(
@@ -336,7 +336,7 @@ class Model:
                 )
 
             raise ClientError(
-                f'File {dataset_url} does not contain all defined columns: {required_headers}'
+                f'File {dataset_url} not contains all defined columns: {required_headers}'
             )
         except BotoClientError as e:
             raise ClientError(
@@ -349,7 +349,7 @@ class Model:
         :param new_features: A list of new features to be set for the model.
         :return: None
         """
-        def __callback(response: requests.Response) -> None:
+        def __callback(_: requests.Response) -> None:
             self.__features = new_features
 
         invoke(
