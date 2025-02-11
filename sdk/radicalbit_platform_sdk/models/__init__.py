@@ -38,6 +38,7 @@ from .model_definition import (
     Granularity,
     ModelDefinition,
     OutputType,
+    ModelFeatures,  # Added import for ModelFeatures
 )
 from .model_type import ModelType
 from .supported_types import SupportedTypes
@@ -80,6 +81,7 @@ __all__ = [
     'AwsCredentials',
     'SupportedTypes',
     'FieldType',
+    'ModelFeatures',  # Added ModelFeatures to __all__
 ]
 
 # Example of dynamically adding model features
