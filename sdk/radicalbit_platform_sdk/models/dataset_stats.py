@@ -4,16 +4,16 @@ from typing import Optional
 
 
 class DatasetStats(BaseModel):
-    n_variables: Optional[int] = None
-    n_observations: Optional[int] = None
-    missing_cells: Optional[int] = None
+    n_variables: int
+    n_observations: int
+    missing_cells: int
     missing_cells_perc: Optional[float] = None
-    duplicate_rows: Optional[int] = None
+    duplicate_rows: int
     duplicate_rows_perc: Optional[float] = None
-    numeric: Optional[int] = None
-    categorical: Optional[int] = None
-    datetime: Optional[int] = None
+    numeric: int
+    categorical: int
+    datetime: int
 
     model_config = ConfigDict(
-        populate_by_name=True, alias_generator=to_camel
+        populate_by_name=True, alias_generator=to_camel, protected_namespaces=()
     )
