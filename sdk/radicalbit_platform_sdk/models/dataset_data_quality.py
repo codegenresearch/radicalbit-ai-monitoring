@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
-from typing import List, Union
+from typing import List, Union, Optional
 
 
 class ClassMetrics(BaseModel):
@@ -12,9 +12,9 @@ class ClassMetrics(BaseModel):
 
 
 class MedianMetrics(BaseModel):
-    perc_25: float
-    median: float
-    perc_75: float
+    perc_25: Optional[float] = None
+    median: Optional[float] = None
+    perc_75: Optional[float] = None
 
     model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
 
@@ -28,7 +28,7 @@ class MissingValue(BaseModel):
 
 class ClassMedianMetrics(BaseModel):
     name: str
-    mean: float
+    mean: Optional[float] = None
     median_metrics: MedianMetrics
 
     model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
@@ -44,10 +44,10 @@ class FeatureMetrics(BaseModel):
 
 class NumericalFeatureMetrics(FeatureMetrics):
     type: str = "numerical"
-    mean: float
-    std: float
-    min: float
-    max: float
+    mean: Optional[float] = None
+    std: Optional[float] = None
+    min: Optional[float] = None
+    max: Optional[float] = None
     median_metrics: MedianMetrics
     class_median_metrics: List[ClassMedianMetrics]
     histogram: 'Histogram'
