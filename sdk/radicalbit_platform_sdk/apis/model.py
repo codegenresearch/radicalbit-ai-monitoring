@@ -210,8 +210,8 @@ class Model:
             )
 
         raise ClientError(
-            f'File {file_name} does not contain all defined columns: {required_headers}'
-        )
+            f'File {file_name} not contains all defined columns: {required_headers}'
+        ) from None
 
     def bind_reference_dataset(
         self,
@@ -257,8 +257,13 @@ class Model:
             response = s3_client.get_object(
                 Bucket=url_parts[0], Key='/'.join(url_parts[1:])
             )
-            file_content = response['Body'].read().decode('UTF-8')
-            file_headers = file_content.split('\n')[0].split(separator)
+            chunks_iterator = response['Body'].iter_chunks()
+
+            chunks = ''
+            for chunk in chunks_iterator:
+                chunks += chunk.decode('UTF-8')
+
+            file_headers = chunks.split('\n')[0].split(separator)
 
             required_headers = self.__required_headers()
 
@@ -266,8 +271,8 @@ class Model:
                 return self.__bind_reference_dataset(dataset_url, separator)
 
             raise ClientError(
-                f'File {dataset_url} does not contain all defined columns: {required_headers}'
-            )
+                f'File {dataset_url} not contains all defined columns: {required_headers}'
+            ) from None
         except BotoClientError as e:
             raise ClientError(
                 f'Unable to get file {dataset_url} from remote storage: {e}'
@@ -354,8 +359,8 @@ class Model:
             )
 
         raise ClientError(
-            f'File {file_name} does not contain all defined columns: {required_headers}'
-        )
+            f'File {file_name} not contains all defined columns: {required_headers}'
+        ) from None
 
     def bind_current_dataset(
         self,
@@ -403,8 +408,13 @@ class Model:
             response = s3_client.get_object(
                 Bucket=url_parts[0], Key='/'.join(url_parts[1:])
             )
-            file_content = response['Body'].read().decode('UTF-8')
-            file_headers = file_content.split('\n')[0].split(separator)
+            chunks_iterator = response['Body'].iter_chunks()
+
+            chunks = ''
+            for chunk in chunks_iterator:
+                chunks += chunk.decode('UTF-8')
+
+            file_headers = chunks.split('\n')[0].split(separator)
 
             required_headers = self.__required_headers()
             required_headers.append(correlation_id_column)
@@ -416,8 +426,8 @@ class Model:
                 )
 
             raise ClientError(
-                f'File {dataset_url} does not contain all defined columns: {required_headers}'
-            )
+                f'File {dataset_url} not contains all defined columns: {required_headers}'
+            ) from None
         except BotoClientError as e:
             raise ClientError(
                 f'Unable to get file {dataset_url} from remote storage: {e}'
@@ -429,11 +439,8 @@ class Model:
         :param features: List of new features to be added to the model.
         :return: None
         """
-        def __callback(response: requests.Response) -> None:
-            try:
-                self.__features = features
-            except Exception as e:
-                raise ClientError(f'Unable to update features: {response.text}') from e
+        def __callback(_: requests.Response) -> None:
+            self.__features = features
 
         invoke(
             method='POST',
