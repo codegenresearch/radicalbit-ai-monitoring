@@ -37,8 +37,8 @@ from .model_definition import (
     CreateModel,
     Granularity,
     ModelDefinition,
+    ModelFeatures,
     OutputType,
-    ModelFeatures,  # Included ModelFeatures here
 )
 from .model_type import ModelType
 from .supported_types import SupportedTypes
