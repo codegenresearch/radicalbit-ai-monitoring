@@ -349,14 +349,16 @@ class Model:
         :param new_features: A list of new features to be set for the model.
         :return: None
         """
+        def __callback(response: requests.Response) -> None:
+            self.__features = new_features
+
         invoke(
             method='POST',
             url=f'{self.__base_url}/api/models/{str(self.__uuid)}',
             valid_response_code=200,
-            func=lambda _: None,
+            func=__callback,
             data=ModelFeatures(features=new_features).model_dump_json(),
         )
-        self.__features = new_features
 
     def __bind_reference_dataset(
         self,
