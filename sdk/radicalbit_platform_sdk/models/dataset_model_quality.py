@@ -27,7 +27,11 @@ class BinaryClassificationModelQuality(ModelQuality):
     area_under_roc: Optional[float] = None
     area_under_pr: Optional[float] = None
 
-    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel, protected_namespaces=())
+    model_config = ConfigDict(
+        populate_by_name=True,
+        alias_generator=to_camel,
+        protected_namespaces=()
+    )
 
 
 class MultiClassModelQuality(ModelQuality):
