@@ -95,29 +95,26 @@ class ModelReferenceDataset:
 
         return self.__statistics
 
-    def data_quality(self) -> tuple[JobStatus, Optional[DataQuality]]:
+    def data_quality(self) -> Optional[DataQuality]:
         """
         Get data quality metrics about the current dataset
 
-        :return: A tuple containing the job status and the `DataQuality` if exists
+        :return: The `DataQuality` if exists
         """
 
-        def __callback(response: requests.Response) -> tuple[JobStatus, Optional[DataQuality]]:
+        def __callback(response: requests.Response) -> Optional[DataQuality]:
             try:
                 response_json = response.json()
                 job_status = JobStatus(response_json["jobStatus"])
                 if "dataQuality" in response_json:
                     if self.__model_type is ModelType.BINARY:
-                        return (
-                            job_status,
-                            BinaryClassificationDataQuality.model_validate(
-                                response_json["dataQuality"]
-                            ),
+                        return BinaryClassificationDataQuality.model_validate(
+                            response_json["dataQuality"]
                         )
                     else:
-                        raise ClientError(f"Unable to parse get metrics for not binary models: {response.text}")
+                        raise ClientError(f"Unable to parse metrics for non-binary models: {response.text}")
                 else:
-                    return job_status, None
+                    return None
             except KeyError as _:
                 raise ClientError(f"Response does not contain the expected keys: {response.text}")
             except ValidationError as _:
@@ -126,55 +123,46 @@ class ModelReferenceDataset:
         match self.__status:
             case JobStatus.ERROR:
                 self.__data_metrics = None
-                return JobStatus.ERROR, None
             case JobStatus.SUCCEEDED:
                 if self.__data_metrics is None:
-                    status, metrics = invoke(
+                    self.__data_metrics = invoke(
                         method="GET",
                         url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/data-quality",
                         valid_response_code=200,
                         func=__callback,
                     )
-                    self.__data_metrics = metrics
-                    return status, metrics
-                else:
-                    return JobStatus.SUCCEEDED, self.__data_metrics
             case JobStatus.IMPORTING:
-                status, metrics = invoke(
+                self.__data_metrics = invoke(
                     method="GET",
                     url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/data-quality",
                     valid_response_code=200,
                     func=__callback,
                 )
-                self.__status = status
-                self.__data_metrics = metrics
-                return status, metrics
 
-    def model_quality(self) -> tuple[JobStatus, Optional[ModelQuality]]:
+        return self.__data_metrics
+
+    def model_quality(self) -> Optional[ModelQuality]:
         """
         Get model quality metrics about the current dataset
 
-        :return: A tuple containing the job status and the `ModelQuality` if exists
+        :return: The `ModelQuality` if exists
         """
 
         def __callback(
             response: requests.Response,
-        ) -> tuple[JobStatus, Optional[ModelQuality]]:
+        ) -> Optional[ModelQuality]:
             try:
                 response_json = response.json()
                 job_status = JobStatus(response_json["jobStatus"])
                 if "modelQuality" in response_json:
                     if self.__model_type is ModelType.BINARY:
-                        return (
-                            job_status,
-                            BinaryClassificationModelQuality.model_validate(
-                                response_json["modelQuality"]
-                            ),
+                        return BinaryClassificationModelQuality.model_validate(
+                            response_json["modelQuality"]
                         )
                     else:
-                        raise ClientError(f"Unable to parse get metrics for not binary models: {response.text}")
+                        raise ClientError(f"Unable to parse metrics for non-binary models: {response.text}")
                 else:
-                    return job_status, None
+                    return None
             except KeyError as _:
                 raise ClientError(f"Response does not contain the expected keys: {response.text}")
             except ValidationError as _:
@@ -183,26 +171,20 @@ class ModelReferenceDataset:
         match self.__status:
             case JobStatus.ERROR:
                 self.__model_metrics = None
-                return JobStatus.ERROR, None
             case JobStatus.SUCCEEDED:
                 if self.__model_metrics is None:
-                    status, metrics = invoke(
+                    self.__model_metrics = invoke(
                         method="GET",
                         url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/model-quality",
                         valid_response_code=200,
                         func=__callback,
                     )
-                    self.__model_metrics = metrics
-                    return status, metrics
-                else:
-                    return JobStatus.SUCCEEDED, self.__model_metrics
             case JobStatus.IMPORTING:
-                status, metrics = invoke(
+                self.__model_metrics = invoke(
                     method="GET",
                     url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/model-quality",
                     valid_response_code=200,
                     func=__callback,
                 )
-                self.__status = status
-                self.__model_metrics = metrics
-                return status, metrics
+
+        return self.__model_metrics
