@@ -331,7 +331,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
                         "classMetrics": {class_metrics},
                         "featureMetrics": {feature_metrics}
                     }}
-                }}""",
+                }}""".replace("'", '"'),
             }
         )
 
