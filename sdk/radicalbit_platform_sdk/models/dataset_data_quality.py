@@ -8,36 +8,30 @@ class ClassMetrics(BaseModel):
     count: int
     percentage: Optional[float] = None
 
-    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class MedianMetrics(BaseModel):
-    perc_25: float
-    median: float
-    perc_75: float
+    perc_25: Optional[float] = None
+    median: Optional[float] = None
+    perc_75: Optional[float] = None
 
-    model_config = ConfigDict(
-        populate_by_name=True, alias_generator=to_camel
-    )
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class MissingValue(BaseModel):
     count: int
     percentage: Optional[float] = None
 
-    model_config = ConfigDict(
-        populate_by_name=True, alias_generator=to_camel
-    )
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class ClassMedianMetrics(BaseModel):
     name: str
-    mean: float
-    median_metrics: MedianMetrics
+    mean: Optional[float] = None
+    median_metrics: Optional[MedianMetrics] = None
 
-    model_config = ConfigDict(
-        populate_by_name=True, alias_generator=to_camel
-    )
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class FeatureMetrics(BaseModel):
@@ -45,24 +39,20 @@ class FeatureMetrics(BaseModel):
     type: str
     missing_value: MissingValue
 
-    model_config = ConfigDict(
-        populate_by_name=True, alias_generator=to_camel
-    )
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class NumericalFeatureMetrics(FeatureMetrics):
     type: str = "numerical"
-    mean: float
-    std: float
-    min: float
-    max: float
-    median_metrics: MedianMetrics
-    class_median_metrics: List[ClassMedianMetrics]
-    histogram: Optional['Histogram'] = None
+    mean: Optional[float] = None
+    std: Optional[float] = None
+    min: Optional[float] = None
+    max: Optional[float] = None
+    median_metrics: Optional[MedianMetrics] = None
+    class_median_metrics: Optional[List[ClassMedianMetrics]] = None
+    histogram: 'Histogram'
 
-    model_config = ConfigDict(
-        populate_by_name=True, alias_generator=to_camel
-    )
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class CategoryFrequency(BaseModel):
@@ -70,9 +60,7 @@ class CategoryFrequency(BaseModel):
     count: int
     frequency: Optional[float] = None
 
-    model_config = ConfigDict(
-        populate_by_name=True, alias_generator=to_camel
-    )
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class CategoricalFeatureMetrics(FeatureMetrics):
@@ -80,9 +68,7 @@ class CategoricalFeatureMetrics(FeatureMetrics):
     category_frequency: List[CategoryFrequency]
     distinct_value: int
 
-    model_config = ConfigDict(
-        populate_by_name=True, alias_generator=to_camel
-    )
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class Histogram(BaseModel):
@@ -90,9 +76,7 @@ class Histogram(BaseModel):
     reference_values: List[int]
     current_values: Optional[List[int]] = None
 
-    model_config = ConfigDict(
-        populate_by_name=True, alias_generator=to_camel
-    )
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class DataQuality(BaseModel):
@@ -106,8 +90,7 @@ class BinaryClassificationDataQuality(DataQuality):
 
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
-        populate_by_name=True,
-        alias_generator=to_camel
+        populate_by_name=True
     )
 
 
