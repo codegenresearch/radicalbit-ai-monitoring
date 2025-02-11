@@ -65,7 +65,7 @@ class ModelReferenceDataset:
                         response_json["statistics"]
                     )
                 else:
-                    raise ClientError("Response does not contain 'statistics' key")
+                    return job_status, None
             except KeyError as _:
                 raise ClientError(f"Unable to parse response: {response.text}")
             except ValidationError as _:
@@ -116,10 +116,10 @@ class ModelReferenceDataset:
                         )
                     else:
                         raise ClientError(
-                            "Unable to parse metrics for non-binary models"
+                            "Unable to parse get metrics for not binary models"
                         )
                 else:
-                    raise ClientError("Response does not contain 'dataQuality' key")
+                    return job_status, None
             except KeyError as _:
                 raise ClientError(f"Unable to parse response: {response.text}")
             except ValidationError as _:
@@ -172,10 +172,10 @@ class ModelReferenceDataset:
                         )
                     else:
                         raise ClientError(
-                            "Unable to parse metrics for non-binary models"
+                            "Unable to parse get metrics for not binary models"
                         )
                 else:
-                    raise ClientError("Response does not contain 'modelQuality' key")
+                    return job_status, None
             except KeyError as _:
                 raise ClientError(f"Unable to parse response: {response.text}")
             except ValidationError as _:
