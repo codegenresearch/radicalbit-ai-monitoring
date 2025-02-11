@@ -25,38 +25,13 @@ class Granularity(str, Enum):
     MONTH = 'MONTH'
 
 
-class BaseModelDefinition(BaseModel):
-    """A base class for model definition.
+class ModelFeatures(BaseModel):
+    """Encapsulates the features of a model.
 
     Attributes:
-        name: The name of the model.
-        description: An optional description to explain something about the model.
-        model_type: The type of the model.
-        data_type: The data type used by the model.
-        granularity: The window used to calculate aggregated metrics.
         features: A list of column definitions representing the features set.
-        outputs: An OutputType definition to explain the output of the model.
-        target: The column used to represent the model's target.
-        timestamp: The column used to store when the prediction was done.
-        frameworks: An optional field to describe the frameworks used by the model.
-        algorithm: An optional field to explain the algorithm used by the model.
     """
-
-    name: str
-    description: Optional[str] = None
-    model_type: ModelType
-    data_type: DataType
-    granularity: Granularity
     features: List[ColumnDefinition]
-    outputs: OutputType
-    target: ColumnDefinition
-    timestamp: ColumnDefinition
-    frameworks: Optional[str] = None
-    algorithm: Optional[str] = None
-
-    model_config = ConfigDict(
-        populate_by_name=True, alias_generator=to_camel, protected_namespaces=()
-    )
 
     def get_numerical_features(self) -> List[ColumnDefinition]:
         """Retrieve all numerical features from the model."""
@@ -77,6 +52,40 @@ class BaseModelDefinition(BaseModel):
     def get_datetime_features(self) -> List[ColumnDefinition]:
         """Retrieve all datetime features from the model."""
         return [feature for feature in self.features if feature.is_datetime()]
+
+
+class BaseModelDefinition(BaseModel):
+    """A base class for model definition.
+
+    Attributes:
+        name: The name of the model.
+        description: An optional description to explain something about the model.
+        model_type: The type of the model.
+        data_type: The data type used by the model.
+        granularity: The window used to calculate aggregated metrics.
+        features: An instance of ModelFeatures encapsulating the features set.
+        outputs: An OutputType definition to explain the output of the model.
+        target: The column used to represent the model's target.
+        timestamp: The column used to store when the prediction was done.
+        frameworks: An optional field to describe the frameworks used by the model.
+        algorithm: An optional field to explain the algorithm used by the model.
+    """
+
+    name: str
+    description: Optional[str] = None
+    model_type: ModelType
+    data_type: DataType
+    granularity: Granularity
+    features: ModelFeatures
+    outputs: OutputType
+    target: ColumnDefinition
+    timestamp: ColumnDefinition
+    frameworks: Optional[str] = None
+    algorithm: Optional[str] = None
+
+    model_config = ConfigDict(
+        populate_by_name=True, alias_generator=to_camel, protected_namespaces=()
+    )
 
 
 class CreateModel(BaseModelDefinition):
