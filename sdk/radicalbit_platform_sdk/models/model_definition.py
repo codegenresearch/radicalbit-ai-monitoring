@@ -2,7 +2,7 @@ from enum import Enum
 from typing import List, Optional
 import uuid as uuid_lib
 
-from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
+from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
 from radicalbit_platform_sdk.models.column_definition import ColumnDefinition
@@ -23,10 +23,6 @@ class Granularity(str, Enum):
     DAY = 'DAY'
     WEEK = 'WEEK'
     MONTH = 'MONTH'
-
-
-class ModelFeatures(BaseModel):
-    features: List[ColumnDefinition]
 
 
 class BaseModelDefinition(BaseModel):
@@ -52,7 +48,7 @@ class BaseModelDefinition(BaseModel):
     model_type: ModelType
     data_type: DataType
     granularity: Granularity
-    features: ModelFeatures
+    features: List[ColumnDefinition]
     outputs: OutputType
     target: ColumnDefinition
     timestamp: ColumnDefinition
@@ -62,26 +58,6 @@ class BaseModelDefinition(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True, alias_generator=to_camel, protected_namespaces=()
     )
-
-    def get_numerical_features(self) -> List[ColumnDefinition]:
-        return TypeAdapter(List[ColumnDefinition]).validate_python(
-            [feature for feature in self.features.features if feature.is_numerical()]
-        )
-
-    def get_float_features(self) -> List[ColumnDefinition]:
-        return TypeAdapter(List[ColumnDefinition]).validate_python(
-            [feature for feature in self.features.features if feature.is_float()]
-        )
-
-    def get_int_features(self) -> List[ColumnDefinition]:
-        return TypeAdapter(List[ColumnDefinition]).validate_python(
-            [feature for feature in self.features.features if feature.is_int()]
-        )
-
-    def get_categorical_features(self) -> List[ColumnDefinition]:
-        return TypeAdapter(List[ColumnDefinition]).validate_python(
-            [feature for feature in self.features.features if feature.is_categorical()]
-        )
 
 
 class CreateModel(BaseModelDefinition):
