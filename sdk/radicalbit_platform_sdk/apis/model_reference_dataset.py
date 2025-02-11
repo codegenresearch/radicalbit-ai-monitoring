@@ -66,10 +66,10 @@ class ModelReferenceDataset:
                     )
                 else:
                     return job_status, None
-            except KeyError as e:
-                raise ClientError(f"Response does not contain the expected keys: {e} - Response: {response.text}")
-            except ValidationError as e:
-                raise ClientError(f"Unable to parse response: {e} - Response: {response.text}")
+            except KeyError:
+                raise ClientError("Response does not contain the expected keys")
+            except ValidationError:
+                raise ClientError("Unable to parse response")
 
         match self.__status:
             case JobStatus.ERROR:
@@ -115,15 +115,13 @@ class ModelReferenceDataset:
                             ),
                         )
                     else:
-                        raise ClientError(
-                            "Unable to parse get metrics for not binary models - Response: {response.text}"
-                        )
+                        raise ClientError("Unable to parse get metrics for not binary models")
                 else:
                     return job_status, None
-            except KeyError as e:
-                raise ClientError(f"Response does not contain the expected keys: {e} - Response: {response.text}")
-            except ValidationError as e:
-                raise ClientError(f"Unable to parse response: {e} - Response: {response.text}")
+            except KeyError:
+                raise ClientError("Response does not contain the expected keys")
+            except ValidationError:
+                raise ClientError("Unable to parse response")
 
         match self.__status:
             case JobStatus.ERROR:
@@ -171,15 +169,13 @@ class ModelReferenceDataset:
                             ),
                         )
                     else:
-                        raise ClientError(
-                            "Unable to parse get metrics for not binary models - Response: {response.text}"
-                        )
+                        raise ClientError("Unable to parse get metrics for not binary models")
                 else:
                     return job_status, None
-            except KeyError as e:
-                raise ClientError(f"Response does not contain the expected keys: {e} - Response: {response.text}")
-            except ValidationError as e:
-                raise ClientError(f"Unable to parse response: {e} - Response: {response.text}")
+            except KeyError:
+                raise ClientError("Response does not contain the expected keys")
+            except ValidationError:
+                raise ClientError("Unable to parse response")
 
         match self.__status:
             case JobStatus.ERROR:
