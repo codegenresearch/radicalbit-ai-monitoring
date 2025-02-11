@@ -18,7 +18,7 @@ class MissingValue(BaseModel):
     percentage: Optional[float] = None
 
     model_config = ConfigDict(
-        populate_by_name=True, alias_generator=to_camel
+        populate_by_name=True
     )
 
 
@@ -73,7 +73,7 @@ class CategoryFrequency(BaseModel):
     frequency: Optional[float] = None
 
     model_config = ConfigDict(
-        populate_by_name=True, alias_generator=to_camel
+        populate_by_name=True
     )
 
 
@@ -93,7 +93,7 @@ class ClassMetrics(BaseModel):
     percentage: Optional[float] = None
 
     model_config = ConfigDict(
-        populate_by_name=True, alias_generator=to_camel
+        populate_by_name=True
     )
 
 
@@ -109,7 +109,7 @@ class BinaryClassificationDataQuality(DataQuality):
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
         populate_by_name=True,
-        alias_generator=to_camel,
+        alias_generator=to_camel
     )
 
 
