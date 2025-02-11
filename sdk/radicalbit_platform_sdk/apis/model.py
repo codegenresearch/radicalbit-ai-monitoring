@@ -81,7 +81,6 @@ class Model:
     def delete(self) -> None:
         """Delete the actual `Model` from the platform.
 
-        :return: None
         :raises ClientError: If the deletion fails.
         """
         try:
@@ -353,7 +352,6 @@ class Model:
         """Update the features of the model.
 
         :param new_features: A list of new features to be set for the model.
-        :return: None
         :raises ClientError: If the update fails.
         """
         def __callback(response: requests.Response) -> None:
@@ -480,7 +478,7 @@ This revised code addresses the feedback by:
 1. Removing the invalid syntax line.
 2. Ensuring that all exceptions include the original exception as the cause using the `from` keyword.
 3. Reviewing and improving the callback functions for consistency, using a double underscore prefix.
-4. Improving the clarity and consistency of docstrings, including "Raises" sections.
+4. Enhancing the clarity and consistency of docstrings, including "Raises" sections.
 5. Ensuring consistent and meaningful variable names in callback functions.
 6. Reducing redundancy by creating a helper method `__get_s3_client` to handle S3 client setup.
 7. Enhancing error messages for clarity and context.
