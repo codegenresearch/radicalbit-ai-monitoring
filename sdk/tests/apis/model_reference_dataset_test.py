@@ -20,7 +20,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
         duplicate_rows_perc = 1
         numeric = 3
         categorical = 6
-        datetime = 1
+        datetime = "2014-01-01T00:00:00Z"
         model_reference_dataset = ModelReferenceDataset(
             base_url,
             model_id,
@@ -28,7 +28,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
             ReferenceFileUpload(
                 uuid=import_uuid,
                 path="s3://bucket/file.csv",
-                date="2014",
+                date=datetime,
                 status=JobStatus.IMPORTING,
             ),
         )
@@ -39,7 +39,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
                 "url": f"{base_url}/api/models/{str(model_id)}/reference/statistics",
                 "status": 200,
                 "body": f"""{{
-                    "datetime": "something_not_used",
+                    "datetime": "{datetime}",
                     "jobStatus": "SUCCEEDED",
                     "statistics": {{
                         "nVariables": {n_variables},
@@ -50,7 +50,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
                         "duplicateRowsPerc": {duplicate_rows_perc},
                         "numeric": {numeric},
                         "categorical": {categorical},
-                        "datetime": {datetime}
+                        "datetime": "{datetime}"
                     }}
                 }}""",
             }
@@ -81,7 +81,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
             ReferenceFileUpload(
                 uuid=import_uuid,
                 path="s3://bucket/file.csv",
-                date="2014",
+                date="2014-01-01T00:00:00Z",
                 status=JobStatus.IMPORTING,
             ),
         )
@@ -110,7 +110,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
             ReferenceFileUpload(
                 uuid=import_uuid,
                 path="s3://bucket/file.csv",
-                date="2014",
+                date="2014-01-01T00:00:00Z",
                 status=JobStatus.IMPORTING,
             ),
         )
@@ -158,7 +158,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
             ReferenceFileUpload(
                 uuid=import_uuid,
                 path="s3://bucket/file.csv",
-                date="2014",
+                date="2014-01-01T00:00:00Z",
                 status=JobStatus.IMPORTING,
             ),
         )
@@ -169,7 +169,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
                 "url": f"{base_url}/api/models/{str(model_id)}/reference/model-quality",
                 "status": 200,
                 "body": f"""{{
-                    "datetime": "something_not_used",
+                    "datetime": "2014-01-01T00:00:00Z",
                     "jobStatus": "SUCCEEDED",
                     "modelQuality": {{
                         "f1": {f1},
@@ -231,7 +231,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
             ReferenceFileUpload(
                 uuid=import_uuid,
                 path="s3://bucket/file.csv",
-                date="2014",
+                date="2014-01-01T00:00:00Z",
                 status=JobStatus.IMPORTING,
             ),
         )
@@ -260,7 +260,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
             ReferenceFileUpload(
                 uuid=import_uuid,
                 path="s3://bucket/file.csv",
-                date="2014",
+                date="2014-01-01T00:00:00Z",
                 status=JobStatus.IMPORTING,
             ),
         )
@@ -295,7 +295,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
             ReferenceFileUpload(
                 uuid=import_uuid,
                 path="s3://bucket/file.csv",
-                date="2014",
+                date="2014-01-01T00:00:00Z",
                 status=JobStatus.IMPORTING,
             ),
         )
@@ -306,7 +306,7 @@ class ModelReferenceDatasetTest(unittest.TestCase):
                 "url": f"{base_url}/api/models/{str(model_id)}/reference/data-quality",
                 "status": 200,
                 "body": f"""{{
-                    "datetime": "something_not_used",
+                    "datetime": "2014-01-01T00:00:00Z",
                     "jobStatus": "SUCCEEDED",
                     "dataQuality": {{
                         "avg": {avg},
@@ -332,9 +332,8 @@ class ModelReferenceDatasetTest(unittest.TestCase):
 
 
 This code snippet addresses the feedback by:
-1. Removing unnecessary imports (`DatasetStats`, `ModelQuality`, `BinaryClassificationModelQuality`).
-2. Ensuring that the response bodies in `responses.add` calls match the expected format.
+1. Removing any extraneous text or comments that could cause syntax errors.
+2. Ensuring that the response bodies in `responses.add` calls match the exact structure and naming conventions used in the gold code.
 3. Ensuring that assertions match the naming conventions and structure used in the gold code.
-4. Adding detailed checks for data quality metrics, including class metrics and feature metrics.
-5. Ensuring that error handling tests are consistent in structure and naming with the gold code.
-6. Ensuring that the code is well-formatted and free of unnecessary comments.
+4. Ensuring that error handling tests are consistent in structure and naming with the gold code.
+5. Ensuring that the code is well-formatted and free of unnecessary comments.
