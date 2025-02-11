@@ -1,20 +1,20 @@
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
-from typing import List, Optional
+from typing import List, Optional, Union
 
 
 class ClassMetrics(BaseModel):
     name: str
     count: int
-    percentage: float = 0.0
+    percentage: Optional[float] = None
 
     model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
 
 
 class MedianMetrics(BaseModel):
-    perc_25: float = 0.0
-    median: float = 0.0
-    perc_75: float = 0.0
+    perc_25: Optional[float] = None
+    median: Optional[float] = None
+    perc_75: Optional[float] = None
 
     model_config = ConfigDict(
         populate_by_name=True, alias_generator=to_camel, protected_namespaces=()
@@ -22,8 +22,8 @@ class MedianMetrics(BaseModel):
 
 
 class MissingValue(BaseModel):
-    count: int = 0
-    percentage: float = 0.0
+    count: int
+    percentage: Optional[float] = None
 
     model_config = ConfigDict(
         populate_by_name=True, alias_generator=to_camel, protected_namespaces=()
@@ -32,7 +32,7 @@ class MissingValue(BaseModel):
 
 class ClassMedianMetrics(BaseModel):
     name: str
-    mean: float = 0.0
+    mean: Optional[float] = None
     median_metrics: MedianMetrics
 
     model_config = ConfigDict(
@@ -52,10 +52,10 @@ class FeatureMetrics(BaseModel):
 
 class NumericalFeatureMetrics(FeatureMetrics):
     type: str = "numerical"
-    mean: float = 0.0
-    std: float = 0.0
-    min: float = 0.0
-    max: float = 0.0
+    mean: Optional[float] = None
+    std: Optional[float] = None
+    min: Optional[float] = None
+    max: Optional[float] = None
     median_metrics: MedianMetrics
     class_median_metrics: List[ClassMedianMetrics]
 
@@ -66,8 +66,8 @@ class NumericalFeatureMetrics(FeatureMetrics):
 
 class CategoryFrequency(BaseModel):
     name: str
-    count: int = 0
-    frequency: float = 0.0
+    count: int
+    frequency: Optional[float] = None
 
     model_config = ConfigDict(
         populate_by_name=True, alias_generator=to_camel, protected_namespaces=()
@@ -77,7 +77,17 @@ class CategoryFrequency(BaseModel):
 class CategoricalFeatureMetrics(FeatureMetrics):
     type: str = "categorical"
     category_frequency: List[CategoryFrequency]
-    distinct_value: int = 0
+    distinct_value: Optional[int] = None
+
+    model_config = ConfigDict(
+        populate_by_name=True, alias_generator=to_camel, protected_namespaces=()
+    )
+
+
+class Histogram(BaseModel):
+    buckets: List[float]
+    reference_values: List[int]
+    current_values: Optional[List[int]] = None
 
     model_config = ConfigDict(
         populate_by_name=True, alias_generator=to_camel, protected_namespaces=()
@@ -91,7 +101,7 @@ class DataQuality(BaseModel):
 class BinaryClassificationDataQuality(DataQuality):
     n_observations: int = 0
     class_metrics: List[ClassMetrics] = []
-    feature_metrics: List[FeatureMetrics] = []
+    feature_metrics: List[Union[NumericalFeatureMetrics, CategoricalFeatureMetrics]] = []
 
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
