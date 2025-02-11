@@ -100,7 +100,7 @@ class Model:
         :return: A list of `ModelReferenceDataset` instances.
         :raises ClientError: If the retrieval fails.
         """
-        def callback(response: requests.Response) -> List[ModelReferenceDataset]:
+        def __callback(response: requests.Response) -> List[ModelReferenceDataset]:
             try:
                 adapter = TypeAdapter(List[ReferenceFileUpload])
                 references = adapter.validate_python(response.json())
@@ -118,7 +118,7 @@ class Model:
                 method='GET',
                 url=f'{self.__base_url}/api/models/{str(self.__uuid)}/reference/all',
                 valid_response_code=200,
-                func=callback,
+                func=__callback,
             )
         except Exception as e:
             raise ClientError(f'Failed to get reference datasets: {e}') from e
@@ -129,7 +129,7 @@ class Model:
         :return: A list of `ModelCurrentDataset` instances.
         :raises ClientError: If the retrieval fails.
         """
-        def callback(response: requests.Response) -> List[ModelCurrentDataset]:
+        def __callback(response: requests.Response) -> List[ModelCurrentDataset]:
             try:
                 adapter = TypeAdapter(List[CurrentFileUpload])
                 references = adapter.validate_python(response.json())
@@ -147,7 +147,7 @@ class Model:
                 method='GET',
                 url=f'{self.__base_url}/api/models/{str(self.__uuid)}/current/all',
                 valid_response_code=200,
-                func=callback,
+                func=__callback,
             )
         except Exception as e:
             raise ClientError(f'Failed to get current datasets: {e}') from e
@@ -356,7 +356,7 @@ class Model:
         :return: None
         :raises ClientError: If the update fails.
         """
-        def callback(response: requests.Response) -> None:
+        def __callback(response: requests.Response) -> None:
             self.__features = new_features
 
         try:
@@ -364,7 +364,7 @@ class Model:
                 method='POST',
                 url=f'{self.__base_url}/api/models/{str(self.__uuid)}',
                 valid_response_code=200,
-                func=callback,
+                func=__callback,
                 data=ModelFeatures(features=new_features).model_dump_json(),
             )
         except Exception as e:
@@ -382,7 +382,7 @@ class Model:
         :return: An instance of `ModelReferenceDataset`.
         :raises ClientError: If the binding fails.
         """
-        def callback(response: requests.Response) -> ModelReferenceDataset:
+        def __callback(response: requests.Response) -> ModelReferenceDataset:
             try:
                 response = ReferenceFileUpload.model_validate(response.json())
                 return ModelReferenceDataset(
@@ -398,7 +398,7 @@ class Model:
                 method='POST',
                 url=f'{self.__base_url}/api/models/{str(self.__uuid)}/reference/bind',
                 valid_response_code=200,
-                func=callback,
+                func=__callback,
                 data=file_ref.model_dump_json(),
             )
         except Exception as e:
@@ -418,7 +418,7 @@ class Model:
         :return: An instance of `ModelCurrentDataset`.
         :raises ClientError: If the binding fails.
         """
-        def callback(response: requests.Response) -> ModelCurrentDataset:
+        def __callback(response: requests.Response) -> ModelCurrentDataset:
             try:
                 response = CurrentFileUpload.model_validate(response.json())
                 return ModelCurrentDataset(
@@ -438,7 +438,7 @@ class Model:
                 method='POST',
                 url=f'{self.__base_url}/api/models/{str(self.__uuid)}/current/bind',
                 valid_response_code=200,
-                func=callback,
+                func=__callback,
                 data=file_ref.model_dump_json(),
             )
         except Exception as e:
@@ -479,7 +479,7 @@ class Model:
 This revised code addresses the feedback by:
 1. Removing the invalid syntax line.
 2. Ensuring that all exceptions include the original exception as the cause using the `from` keyword.
-3. Reviewing and improving the callback functions for consistency.
+3. Reviewing and improving the callback functions for consistency, using a double underscore prefix.
 4. Improving the clarity and consistency of docstrings, including "Raises" sections.
 5. Ensuring consistent and meaningful variable names in callback functions.
 6. Reducing redundancy by creating a helper method `__get_s3_client` to handle S3 client setup.
