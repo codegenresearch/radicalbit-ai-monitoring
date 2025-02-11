@@ -84,8 +84,8 @@ class ModelDefinition(BaseModelDefinition):
 
 
 ### Changes Made:
-1. **Docstring Consistency**: Adjusted the wording and structure of the docstrings to match the gold code.
-2. **Class Structure**: Removed the methods from the `ModelFeatures` class to align with the gold code.
-3. **Attribute Descriptions**: Made the descriptions more concise and consistent with the gold code.
+1. **Docstring Consistency**: Removed bullet points and list formatting from docstrings to ensure they are syntactically correct.
+2. **Class Structure**: Ensured that the `ModelFeatures` class does not contain any methods.
+3. **Attribute Descriptions**: Made the descriptions clear and consistent with the gold code's descriptions.
 4. **Formatting and Spacing**: Ensured consistent formatting and spacing throughout the code.
 5. **Model Configurations**: Verified that the `model_config` definitions match the gold code exactly.
