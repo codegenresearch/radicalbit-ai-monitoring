@@ -4,6 +4,7 @@ from radicalbit_platform_sdk.errors import ClientError
 import responses
 import unittest
 import uuid
+import json
 
 
 class ModelReferenceDatasetTest(unittest.TestCase):
@@ -33,26 +34,29 @@ class ModelReferenceDatasetTest(unittest.TestCase):
             ),
         )
 
+        response_body = {
+            "datetime": "something_not_used",
+            "jobStatus": "SUCCEEDED",
+            "statistics": {
+                "nVariables": n_variables,
+                "nObservations": n_observations,
+                "missingCells": missing_cells,
+                "missingCellsPerc": missing_cells_perc,
+                "duplicateRows": duplicate_rows,
+                "duplicateRowsPerc": duplicate_rows_perc,
+                "numeric": numeric,
+                "categorical": categorical,
+                "datetime": datetime
+            }
+        }
+
         responses.add(
             **{
                 "method": responses.GET,
                 "url": f"{base_url}/api/models/{str(model_id)}/reference/statistics",
                 "status": 200,
-                "body": f"""{{
-                    "datetime": "something_not_used",
-                    "jobStatus": "SUCCEEDED",
-                    "statistics": {{
-                        "nVariables": {n_variables},
-                        "nObservations": {n_observations},
-                        "missingCells": {missing_cells},
-                        "missingCellsPerc": {missing_cells_perc},
-                        "duplicateRows": {duplicate_rows},
-                        "duplicateRowsPerc": {duplicate_rows_perc},
-                        "numeric": {numeric},
-                        "categorical": {categorical},
-                        "datetime": {datetime}
-                    }}
-                }}""",
+                "body": json.dumps(response_body),
+                "content_type": "application/json",
             }
         )
 
@@ -162,35 +166,38 @@ class ModelReferenceDatasetTest(unittest.TestCase):
             ),
         )
 
+        response_body = {
+            "datetime": "something_not_used",
+            "jobStatus": "SUCCEEDED",
+            "modelQuality": {
+                "f1": f1,
+                "accuracy": accuracy,
+                "precision": precision,
+                "recall": recall,
+                "fMeasure": f_measure,
+                "weightedPrecision": weighted_precision,
+                "weightedRecall": weighted_recall,
+                "weightedFMeasure": weighted_f_measure,
+                "weightedTruePositiveRate": weighted_true_positive_rate,
+                "weightedFalsePositiveRate": weighted_false_positive_rate,
+                "truePositiveRate": true_positive_rate,
+                "falsePositiveRate": false_positive_rate,
+                "areaUnderRoc": area_under_roc,
+                "areaUnderPr": area_under_pr,
+                "truePositiveCount": true_positive_count,
+                "falsePositiveCount": false_positive_count,
+                "trueNegativeCount": true_negative_count,
+                "falseNegativeCount": false_negative_count
+            }
+        }
+
         responses.add(
             **{
                 "method": responses.GET,
                 "url": f"{base_url}/api/models/{str(model_id)}/reference/model-quality",
                 "status": 200,
-                "body": f"""{{
-                    "datetime": "something_not_used",
-                    "jobStatus": "SUCCEEDED",
-                    "modelQuality": {{
-                        "f1": {f1},
-                        "accuracy": {accuracy},
-                        "precision": {precision},
-                        "recall": {recall},
-                        "fMeasure": {f_measure},
-                        "weightedPrecision": {weighted_precision},
-                        "weightedRecall": {weighted_recall},
-                        "weightedFMeasure": {weighted_f_measure},
-                        "weightedTruePositiveRate": {weighted_true_positive_rate},
-                        "weightedFalsePositiveRate": {weighted_false_positive_rate},
-                        "truePositiveRate": {true_positive_rate},
-                        "falsePositiveRate": {false_positive_rate},
-                        "areaUnderRoc": {area_under_roc},
-                        "areaUnderPr": {area_under_pr},
-                        "truePositiveCount": {true_positive_count},
-                        "falsePositiveCount": {false_positive_count},
-                        "trueNegativeCount": {true_negative_count},
-                        "falseNegativeCount": {false_negative_count}
-                    }}
-                }}""",
+                "body": json.dumps(response_body),
+                "content_type": "application/json",
             }
         )
 
@@ -321,21 +328,24 @@ class ModelReferenceDatasetTest(unittest.TestCase):
             ),
         )
 
+        response_body = {
+            "datetime": "something_not_used",
+            "jobStatus": "SUCCEEDED",
+            "dataQuality": {
+                "nObservations": n_observations,
+                "avg": avg,
+                "classMetrics": class_metrics,
+                "featureMetrics": feature_metrics
+            }
+        }
+
         responses.add(
             **{
                 "method": responses.GET,
                 "url": f"{base_url}/api/models/{str(model_id)}/reference/data-quality",
                 "status": 200,
-                "body": f"""{{
-                    "datetime": "something_not_used",
-                    "jobStatus": "SUCCEEDED",
-                    "dataQuality": {{
-                        "nObservations": {n_observations},
-                        "avg": {avg},
-                        "classMetrics": {class_metrics},
-                        "featureMetrics": {feature_metrics}
-                    }}
-                }}""".replace("'", '"'),
+                "body": json.dumps(response_body),
+                "content_type": "application/json",
             }
         )
 
