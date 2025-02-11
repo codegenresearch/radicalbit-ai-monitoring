@@ -122,10 +122,3 @@ class ModelDefinition(BaseModelDefinition):
     updated_at: str = Field(alias='updatedAt')
 
     model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
-
-
-This code snippet addresses the feedback by:
-1. Modifying the `BaseModelDefinition` class to accept a list of `ColumnDefinition` instances directly for the `features` attribute.
-2. Ensuring that the `ModelFeatures` class includes a `model_config` attribute.
-3. Refining the docstrings to be more concise and consistent with the gold code.
-4. Ensuring that the `model_config` attribute is consistently defined across all classes.
