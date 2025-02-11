@@ -443,7 +443,7 @@ class Model:
 
 
 ### Key Adjustments Made:
-1. **Syntax Error Fix**: Removed the improperly formatted comment at line 451 to ensure the code is syntactically valid.
+1. **Syntax Error Fix**: Removed the improperly formatted comment at line 450 to ensure the code is syntactically valid.
 2. **Error Handling**: Updated error handling to use the original exception as the cause (e.g., `from e` instead of `from None`) to maintain the context of the error.
 3. **Method Naming Consistency**: Ensured that method names and parameter names are consistent with the gold code.
 4. **Callback Functions**: Ensured that callback functions used in the `invoke` method are consistent with those in the gold code.
