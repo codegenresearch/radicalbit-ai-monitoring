@@ -300,13 +300,13 @@ class ModelReferenceDatasetTest(unittest.TestCase):
         feature_metrics = [
             {
                 "featureName": "feature1",
-                "missingValue": 0,
-                "medianMetrics": {}
+                "missingValue": {"value": None, "count": 0},
+                "medianMetrics": {"value": 0.5, "count": 1000}
             },
             {
                 "featureName": "feature2",
-                "missingValue": 0,
-                "medianMetrics": {}
+                "missingValue": {"value": None, "count": 0},
+                "medianMetrics": {"value": 0.5, "count": 1000}
             }
         ]
         model_reference_dataset = ModelReferenceDataset(
@@ -354,8 +354,10 @@ class ModelReferenceDatasetTest(unittest.TestCase):
         assert len(data_quality.feature_metrics) == len(feature_metrics)
         for i, fm in enumerate(data_quality.feature_metrics):
             assert fm.feature_name == feature_metrics[i]["featureName"]
-            assert fm.missing_value == feature_metrics[i]["missingValue"]
-            assert fm.median_metrics == feature_metrics[i]["medianMetrics"]
+            assert fm.missing_value.value == feature_metrics[i]["missingValue"]["value"]
+            assert fm.missing_value.count == feature_metrics[i]["missingValue"]["count"]
+            assert fm.median_metrics.value == feature_metrics[i]["medianMetrics"]["value"]
+            assert fm.median_metrics.count == feature_metrics[i]["medianMetrics"]["count"]
 
         assert model_reference_dataset.status() == JobStatus.SUCCEEDED
 
