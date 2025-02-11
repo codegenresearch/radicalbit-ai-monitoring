@@ -3,20 +3,12 @@ from pydantic.alias_generators import to_camel
 from typing import List, Union, Optional
 
 
-class Histogram(BaseModel):
-    buckets: List[float]
-    reference_values: List[int]
-    current_values: Optional[List[int]] = None
-
-    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
-
-
 class ClassMetrics(BaseModel):
     name: str
     count: int
     percentage: Optional[float] = None
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
 
 
 class MedianMetrics(BaseModel):
@@ -24,20 +16,28 @@ class MedianMetrics(BaseModel):
     median: Optional[float] = None
     perc_75: Optional[float] = None
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
 
 
 class MissingValue(BaseModel):
     count: int
     percentage: Optional[float] = None
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
 
 
 class ClassMedianMetrics(BaseModel):
     name: str
     mean: Optional[float] = None
     median_metrics: MedianMetrics
+
+    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
+
+
+class Histogram(BaseModel):
+    buckets: List[float]
+    reference_values: List[int]
+    current_values: Optional[List[int]] = None
 
     model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
 
