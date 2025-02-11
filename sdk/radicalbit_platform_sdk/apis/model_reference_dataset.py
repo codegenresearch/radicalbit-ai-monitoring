@@ -35,19 +35,15 @@ class ModelReferenceDataset:
         self.__model_metrics: Optional[ModelQuality] = None
         self.__data_metrics: Optional[DataQuality] = None
 
-    @property
     def uuid(self) -> UUID:
         return self.__uuid
 
-    @property
     def path(self) -> str:
         return self.__path
 
-    @property
     def date(self) -> str:
         return self.__date
 
-    @property
     def status(self) -> str:
         return self.__status
 
@@ -63,35 +59,42 @@ class ModelReferenceDataset:
         ) -> tuple[JobStatus, Optional[DatasetStats]]:
             try:
                 response_json = response.json()
-                job_status = JobStatus(response_json.get("jobStatus"))
+                job_status_value = response_json.get("jobStatus")
+                if job_status_value is None:
+                    raise ClientError("Response does not contain a valid jobStatus")
+                job_status = JobStatus(job_status_value)
                 if "statistics" in response_json:
                     return job_status, DatasetStats.model_validate(
                         response_json["statistics"]
                     )
                 else:
                     return job_status, None
-            except (KeyError, ValidationError):
-                raise ClientError(f"Unable to parse response: {response.text}")
+            except KeyError:
+                raise ClientError("Response does not contain the expected keys")
+            except ValidationError:
+                raise ClientError("Unable to parse response")
 
-        if self.__status == JobStatus.ERROR:
-            self.__statistics = None
-        elif self.__status == JobStatus.SUCCEEDED and self.__statistics is None:
-            _, stats = invoke(
-                method="GET",
-                url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/statistics",
-                valid_response_code=200,
-                func=__callback,
-            )
-            self.__statistics = stats
-        elif self.__status == JobStatus.IMPORTING:
-            status, stats = invoke(
-                method="GET",
-                url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/statistics",
-                valid_response_code=200,
-                func=__callback,
-            )
-            self.__status = status
-            self.__statistics = stats
+        match self.__status:
+            case JobStatus.ERROR:
+                self.__statistics = None
+            case JobStatus.SUCCEEDED:
+                if self.__statistics is None:
+                    _, stats = invoke(
+                        method="GET",
+                        url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/statistics",
+                        valid_response_code=200,
+                        func=__callback,
+                    )
+                    self.__statistics = stats
+            case JobStatus.IMPORTING:
+                status, stats = invoke(
+                    method="GET",
+                    url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/statistics",
+                    valid_response_code=200,
+                    func=__callback,
+                )
+                self.__status = status
+                self.__statistics = stats
 
         return self.__statistics
 
@@ -105,9 +108,12 @@ class ModelReferenceDataset:
         def __callback(response: requests.Response) -> Optional[DataQuality]:
             try:
                 response_json = response.json()
-                job_status = JobStatus(response_json.get("jobStatus"))
+                job_status_value = response_json.get("jobStatus")
+                if job_status_value is None:
+                    raise ClientError("Response does not contain a valid jobStatus")
+                job_status = JobStatus(job_status_value)
                 if "dataQuality" in response_json:
-                    if self.__model_type == ModelType.BINARY:
+                    if self.__model_type is ModelType.BINARY:
                         return (
                             job_status,
                             BinaryClassificationDataQuality.model_validate(
@@ -120,28 +126,32 @@ class ModelReferenceDataset:
                         )
                 else:
                     return job_status, None
-            except (KeyError, ValidationError):
-                raise ClientError(f"Unable to parse response: {response.text}")
+            except KeyError:
+                raise ClientError("Response does not contain the expected keys")
+            except ValidationError:
+                raise ClientError("Unable to parse response")
 
-        if self.__status == JobStatus.ERROR:
-            self.__data_metrics = None
-        elif self.__status == JobStatus.SUCCEEDED and self.__data_metrics is None:
-            _, metrics = invoke(
-                method="GET",
-                url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/data-quality",
-                valid_response_code=200,
-                func=__callback,
-            )
-            self.__data_metrics = metrics
-        elif self.__status == JobStatus.IMPORTING:
-            status, metrics = invoke(
-                method="GET",
-                url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/data-quality",
-                valid_response_code=200,
-                func=__callback,
-            )
-            self.__status = status
-            self.__data_metrics = metrics
+        match self.__status:
+            case JobStatus.ERROR:
+                self.__data_metrics = None
+            case JobStatus.SUCCEEDED:
+                if self.__data_metrics is None:
+                    _, metrics = invoke(
+                        method="GET",
+                        url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/data-quality",
+                        valid_response_code=200,
+                        func=__callback,
+                    )
+                    self.__data_metrics = metrics
+            case JobStatus.IMPORTING:
+                status, metrics = invoke(
+                    method="GET",
+                    url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/data-quality",
+                    valid_response_code=200,
+                    func=__callback,
+                )
+                self.__status = status
+                self.__data_metrics = metrics
 
         return self.__data_metrics
 
@@ -157,9 +167,12 @@ class ModelReferenceDataset:
         ) -> tuple[JobStatus, Optional[ModelQuality]]:
             try:
                 response_json = response.json()
-                job_status = JobStatus(response_json.get("jobStatus"))
+                job_status_value = response_json.get("jobStatus")
+                if job_status_value is None:
+                    raise ClientError("Response does not contain a valid jobStatus")
+                job_status = JobStatus(job_status_value)
                 if "modelQuality" in response_json:
-                    if self.__model_type == ModelType.BINARY:
+                    if self.__model_type is ModelType.BINARY:
                         return (
                             job_status,
                             BinaryClassificationModelQuality.model_validate(
@@ -172,27 +185,31 @@ class ModelReferenceDataset:
                         )
                 else:
                     return job_status, None
-            except (KeyError, ValidationError):
-                raise ClientError(f"Unable to parse response: {response.text}")
+            except KeyError:
+                raise ClientError("Response does not contain the expected keys")
+            except ValidationError:
+                raise ClientError("Unable to parse response")
 
-        if self.__status == JobStatus.ERROR:
-            self.__model_metrics = None
-        elif self.__status == JobStatus.SUCCEEDED and self.__model_metrics is None:
-            _, metrics = invoke(
-                method="GET",
-                url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/model-quality",
-                valid_response_code=200,
-                func=__callback,
-            )
-            self.__model_metrics = metrics
-        elif self.__status == JobStatus.IMPORTING:
-            status, metrics = invoke(
-                method="GET",
-                url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/model-quality",
-                valid_response_code=200,
-                func=__callback,
-            )
-            self.__status = status
-            self.__model_metrics = metrics
+        match self.__status:
+            case JobStatus.ERROR:
+                self.__model_metrics = None
+            case JobStatus.SUCCEEDED:
+                if self.__model_metrics is None:
+                    _, metrics = invoke(
+                        method="GET",
+                        url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/model-quality",
+                        valid_response_code=200,
+                        func=__callback,
+                    )
+                    self.__model_metrics = metrics
+            case JobStatus.IMPORTING:
+                status, metrics = invoke(
+                    method="GET",
+                    url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/model-quality",
+                    valid_response_code=200,
+                    func=__callback,
+                )
+                self.__status = status
+                self.__model_metrics = metrics
 
         return self.__model_metrics
