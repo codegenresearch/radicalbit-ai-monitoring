@@ -210,8 +210,8 @@ class Model:
             )
 
         raise ClientError(
-            f'File {file_name} not contains all defined columns: {required_headers}'
-        ) from None
+            f'File {file_name} does not contain all defined columns: {required_headers}'
+        )
 
     def bind_reference_dataset(
         self,
@@ -254,15 +254,11 @@ class Model:
         )
 
         try:
-            chunks_iterator = s3_client.get_object(
+            response = s3_client.get_object(
                 Bucket=url_parts[0], Key='/'.join(url_parts[1:])
-            )['Body'].iter_chunks()
-
-            chunks = ''
-            for c in (chunk for chunk in chunks_iterator if '\n' not in chunks):
-                chunks += c.decode('UTF-8')
-
-            file_headers = chunks.split('\n')[0].split(separator)
+            )
+            file_content = response['Body'].read().decode('UTF-8')
+            file_headers = file_content.split('\n')[0].split(separator)
 
             required_headers = self.__required_headers()
 
@@ -270,8 +266,8 @@ class Model:
                 return self.__bind_reference_dataset(dataset_url, separator)
 
             raise ClientError(
-                f'File {dataset_url} not contains all defined columns: {required_headers}'
-            ) from None
+                f'File {dataset_url} does not contain all defined columns: {required_headers}'
+            )
         except BotoClientError as e:
             raise ClientError(
                 f'Unable to get file {dataset_url} from remote storage: {e}'
@@ -358,8 +354,8 @@ class Model:
             )
 
         raise ClientError(
-            f'File {file_name} not contains all defined columns: {required_headers}'
-        ) from None
+            f'File {file_name} does not contain all defined columns: {required_headers}'
+        )
 
     def bind_current_dataset(
         self,
@@ -404,15 +400,11 @@ class Model:
         )
 
         try:
-            chunks_iterator = s3_client.get_object(
+            response = s3_client.get_object(
                 Bucket=url_parts[0], Key='/'.join(url_parts[1:])
-            )['Body'].iter_chunks()
-
-            chunks = ''
-            for c in (chunk for chunk in chunks_iterator if '\n' not in chunks):
-                chunks += c.decode('UTF-8')
-
-            file_headers = chunks.split('\n')[0].split(separator)
+            )
+            file_content = response['Body'].read().decode('UTF-8')
+            file_headers = file_content.split('\n')[0].split(separator)
 
             required_headers = self.__required_headers()
             required_headers.append(correlation_id_column)
@@ -424,22 +416,22 @@ class Model:
                 )
 
             raise ClientError(
-                f'File {dataset_url} not contains all defined columns: {required_headers}'
-            ) from None
+                f'File {dataset_url} does not contain all defined columns: {required_headers}'
+            )
         except BotoClientError as e:
             raise ClientError(
                 f'Unable to get file {dataset_url} from remote storage: {e}'
             ) from e
 
-    def update_features(self, new_features: List[ColumnDefinition]) -> None:
+    def update_features(self, features: List[ColumnDefinition]) -> None:
         """Update the features of the model.
 
-        :param new_features: List of new features to be added to the model.
+        :param features: List of new features to be added to the model.
         :return: None
         """
         def __callback(response: requests.Response) -> None:
             try:
-                self.__features = new_features
+                self.__features = features
             except Exception as e:
                 raise ClientError(f'Unable to update features: {response.text}') from e
 
@@ -448,7 +440,7 @@ class Model:
             url=f'{self.__base_url}/api/models/{str(self.__uuid)}',
             valid_response_code=200,
             func=__callback,
-            data=ModelFeatures(features=new_features).model_dump_json(),
+            data=ModelFeatures(features=features).model_dump_json(),
         )
 
     def __bind_reference_dataset(
