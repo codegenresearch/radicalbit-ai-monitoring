@@ -103,7 +103,7 @@ class Model:
                     for ref in references
                 ]
             except ValidationError as e:
-                raise ClientError(f'Unable to parse response: {response.text}') from e
+                raise ClientError(f'Unable to parse response: {response.text}') from None
 
         return invoke(
             method='GET',
@@ -125,7 +125,7 @@ class Model:
                     for ref in references
                 ]
             except ValidationError as e:
-                raise ClientError(f'Unable to parse response: {response.text}') from e
+                raise ClientError(f'Unable to parse response: {response.text}') from None
 
         return invoke(
             method='GET',
@@ -208,14 +208,14 @@ class Model:
             except BotoClientError as e:
                 raise ClientError(
                     f'Unable to upload file {file_name} to remote storage: {e}'
-                ) from e
+                ) from None
             return self.__bind_reference_dataset(
                 f's3://{bucket}/{object_name}', separator
             )
 
         raise ClientError(
-            f'File {file_name} does not contain all defined columns: {required_headers}'
-        )
+            f'File {file_name} not contains all defined columns: {required_headers}'
+        ) from None
 
     def bind_reference_dataset(
         self,
@@ -274,12 +274,12 @@ class Model:
                 return self.__bind_reference_dataset(dataset_url, separator)
 
             raise ClientError(
-                f'File {dataset_url} does not contain all defined columns: {required_headers}'
-            )
+                f'File {dataset_url} not contains all defined columns: {required_headers}'
+            ) from None
         except BotoClientError as e:
             raise ClientError(
                 f'Unable to get file {dataset_url} from remote storage: {e}'
-            ) from e
+            ) from None
 
     def load_current_dataset(
         self,
@@ -360,14 +360,14 @@ class Model:
             except BotoClientError as e:
                 raise ClientError(
                     f'Unable to upload file {file_name} to remote storage: {e}'
-                ) from e
+                ) from None
             return self.__bind_current_dataset(
                 f's3://{bucket}/{object_name}', separator, correlation_id_column
             )
 
         raise ClientError(
-            f'File {file_name} does not contain all defined columns: {required_headers}'
-        )
+            f'File {file_name} not contains all defined columns: {required_headers}'
+        ) from None
 
     def bind_current_dataset(
         self,
@@ -432,12 +432,12 @@ class Model:
                 )
 
             raise ClientError(
-                f'File {dataset_url} does not contain all defined columns: {required_headers}'
-            )
+                f'File {dataset_url} not contains all defined columns: {required_headers}'
+            ) from None
         except BotoClientError as e:
             raise ClientError(
                 f'Unable to get file {dataset_url} from remote storage: {e}'
-            ) from e
+            ) from None
 
     def update_features(self, new_features: List[ColumnDefinition]) -> None:
         """Update the features of the model.
@@ -445,14 +445,16 @@ class Model:
         :param new_features: A list of new features to be set for the model.
         :return: None
         """
+        def __callback(response: requests.Response) -> None:
+            self.__features = new_features
+
         invoke(
             method='POST',
             url=f'{self.__base_url}/api/models/{str(self.__uuid)}',
             valid_response_code=200,
-            func=lambda _: None,
+            func=__callback,
             data=ModelFeatures(features=new_features).model_dump_json(),
         )
-        self.__features = new_features
 
     def __bind_reference_dataset(
         self,
@@ -466,7 +468,7 @@ class Model:
                     self.__base_url, self.__uuid, self.__model_type, response
                 )
             except ValidationError as e:
-                raise ClientError(f'Unable to parse response: {response.text}') from e
+                raise ClientError(f'Unable to parse response: {response.text}') from None
 
         file_ref = FileReference(file_url=dataset_url, separator=separator)
 
@@ -491,7 +493,7 @@ class Model:
                     self.__base_url, self.__uuid, self.__model_type, response
                 )
             except ValidationError as e:
-                raise ClientError(f'Unable to parse response: {response.text}') from e
+                raise ClientError(f'Unable to parse response: {response.text}') from None
 
         file_ref = FileReference(
             file_url=dataset_url,
