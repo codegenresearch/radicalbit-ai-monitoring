@@ -279,7 +279,32 @@ class ModelReferenceDatasetTest(unittest.TestCase):
         base_url = "http://api:9000"
         model_id = uuid.uuid4()
         import_uuid = uuid.uuid4()
+        n_observations = 1000
         avg = 0.1
+        class_metrics = [
+            {
+                "class": "class1",
+                "precision": 0.8,
+                "recall": 0.9,
+                "f1": 0.85
+            },
+            {
+                "class": "class2",
+                "precision": 0.7,
+                "recall": 0.6,
+                "f1": 0.65
+            }
+        ]
+        feature_metrics = [
+            {
+                "feature": "feature1",
+                "importance": 0.4
+            },
+            {
+                "feature": "feature2",
+                "importance": 0.6
+            }
+        ]
         model_reference_dataset = ModelReferenceDataset(
             base_url,
             model_id,
@@ -301,7 +326,10 @@ class ModelReferenceDatasetTest(unittest.TestCase):
                     "datetime": "something_not_used",
                     "jobStatus": "SUCCEEDED",
                     "dataQuality": {{
-                        "avg": {avg}
+                        "nObservations": {n_observations},
+                        "avg": {avg},
+                        "classMetrics": {class_metrics},
+                        "featureMetrics": {feature_metrics}
                     }}
                 }}""",
             }
@@ -309,7 +337,10 @@ class ModelReferenceDatasetTest(unittest.TestCase):
 
         data_quality = model_reference_dataset.data_quality()
 
+        assert data_quality.n_observations == n_observations
         assert data_quality.avg == avg
+        assert data_quality.class_metrics == class_metrics
+        assert data_quality.feature_metrics == feature_metrics
         assert model_reference_dataset.status() == JobStatus.SUCCEEDED
 
     @responses.activate
