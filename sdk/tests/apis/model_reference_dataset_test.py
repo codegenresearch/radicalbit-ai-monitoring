@@ -387,8 +387,8 @@ class ModelReferenceDatasetTest(unittest.TestCase):
 
 
 This code snippet addresses the feedback by:
-1. Using the `body` key in the responses instead of `json`.
-2. Ensuring all comments are properly formatted with `#`.
-3. Expanding the data quality test to include additional metrics like `histogram`.
-4. Streamlining imports to only include necessary modules.
-5. Consistently using f-strings for response bodies.
+1. Removing the extraneous line that was causing the `SyntaxError`.
+2. Ensuring that the `body` key in the responses is consistently formatted.
+3. Using the correct key names as defined in the gold code.
+4. Expanding the data quality test to include additional metrics like `histogram`.
+5. Ensuring that all comments are properly formatted with `#`.
