@@ -31,9 +31,9 @@ class ModelReferenceDataset:
         self.__path = upload.path
         self.__date = upload.date
         self.__status = upload.status
-        self.__statistics: Optional[DatasetStats] = None
-        self.__model_metrics: Optional[ModelQuality] = None
-        self.__data_metrics: Optional[DataQuality] = None
+        self.__statistics = None
+        self.__model_metrics = None
+        self.__data_metrics = None
 
     def uuid(self) -> UUID:
         return self.__uuid
@@ -59,20 +59,17 @@ class ModelReferenceDataset:
         ) -> tuple[JobStatus, Optional[DatasetStats]]:
             try:
                 response_json = response.json()
-                job_status_value = response_json.get("jobStatus")
-                if job_status_value is None:
-                    raise ClientError("Response does not contain a valid jobStatus")
-                job_status = JobStatus(job_status_value)
+                job_status = JobStatus(response_json["jobStatus"])
                 if "statistics" in response_json:
                     return job_status, DatasetStats.model_validate(
                         response_json["statistics"]
                     )
                 else:
                     return job_status, None
-            except KeyError:
-                raise ClientError("Response does not contain the expected keys")
-            except ValidationError:
-                raise ClientError("Unable to parse response")
+            except KeyError as e:
+                raise ClientError(f"Response does not contain the expected keys: {e} - Response: {response.text}")
+            except ValidationError as e:
+                raise ClientError(f"Unable to parse response: {e} - Response: {response.text}")
 
         match self.__status:
             case JobStatus.ERROR:
@@ -108,10 +105,7 @@ class ModelReferenceDataset:
         def __callback(response: requests.Response) -> Optional[DataQuality]:
             try:
                 response_json = response.json()
-                job_status_value = response_json.get("jobStatus")
-                if job_status_value is None:
-                    raise ClientError("Response does not contain a valid jobStatus")
-                job_status = JobStatus(job_status_value)
+                job_status = JobStatus(response_json["jobStatus"])
                 if "dataQuality" in response_json:
                     if self.__model_type is ModelType.BINARY:
                         return (
@@ -122,14 +116,14 @@ class ModelReferenceDataset:
                         )
                     else:
                         raise ClientError(
-                            "Unable to parse get metrics for non-binary models"
+                            "Unable to parse get metrics for not binary models - Response: {response.text}"
                         )
                 else:
                     return job_status, None
-            except KeyError:
-                raise ClientError("Response does not contain the expected keys")
-            except ValidationError:
-                raise ClientError("Unable to parse response")
+            except KeyError as e:
+                raise ClientError(f"Response does not contain the expected keys: {e} - Response: {response.text}")
+            except ValidationError as e:
+                raise ClientError(f"Unable to parse response: {e} - Response: {response.text}")
 
         match self.__status:
             case JobStatus.ERROR:
@@ -167,10 +161,7 @@ class ModelReferenceDataset:
         ) -> tuple[JobStatus, Optional[ModelQuality]]:
             try:
                 response_json = response.json()
-                job_status_value = response_json.get("jobStatus")
-                if job_status_value is None:
-                    raise ClientError("Response does not contain a valid jobStatus")
-                job_status = JobStatus(job_status_value)
+                job_status = JobStatus(response_json["jobStatus"])
                 if "modelQuality" in response_json:
                     if self.__model_type is ModelType.BINARY:
                         return (
@@ -181,14 +172,14 @@ class ModelReferenceDataset:
                         )
                     else:
                         raise ClientError(
-                            "Unable to parse get metrics for non-binary models"
+                            "Unable to parse get metrics for not binary models - Response: {response.text}"
                         )
                 else:
                     return job_status, None
-            except KeyError:
-                raise ClientError("Response does not contain the expected keys")
-            except ValidationError:
-                raise ClientError("Unable to parse response")
+            except KeyError as e:
+                raise ClientError(f"Response does not contain the expected keys: {e} - Response: {response.text}")
+            except ValidationError as e:
+                raise ClientError(f"Unable to parse response: {e} - Response: {response.text}")
 
         match self.__status:
             case JobStatus.ERROR:
