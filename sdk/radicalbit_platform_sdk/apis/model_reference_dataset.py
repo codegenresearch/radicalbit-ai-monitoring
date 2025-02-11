@@ -65,7 +65,7 @@ class ModelReferenceDataset:
                         response_json["statistics"]
                     )
                 else:
-                    raise ClientError(f"Response does not contain 'statistics' key: {response.text}")
+                    return job_status, None
             except KeyError as _:
                 raise ClientError(f"Unable to parse response: {response.text}")
             except ValidationError as _:
@@ -75,7 +75,7 @@ class ModelReferenceDataset:
             case JobStatus.ERROR:
                 self.__statistics = None
             case JobStatus.SUCCEEDED | JobStatus.IMPORTING:
-                if self.__statistics is None or self.__status is JobStatus.IMPORTING:
+                if self.__statistics is None:
                     status, stats = invoke(
                         method="GET",
                         url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/statistics",
@@ -94,7 +94,7 @@ class ModelReferenceDataset:
         :return: The `DataQuality` if exists
         """
 
-        def __callback(response: requests.Response) -> Optional[DataQuality]:
+        def __callback(response: requests.Response) -> tuple[JobStatus, Optional[DataQuality]]:
             try:
                 response_json = response.json()
                 job_status = JobStatus(response_json.get("jobStatus", JobStatus.ERROR))
@@ -111,7 +111,7 @@ class ModelReferenceDataset:
                             "Unable to parse get metrics for non-binary models"
                         )
                 else:
-                    raise ClientError(f"Response does not contain 'dataQuality' key: {response.text}")
+                    return job_status, None
             except KeyError as _:
                 raise ClientError(f"Unable to parse response: {response.text}")
             except ValidationError as _:
@@ -121,7 +121,7 @@ class ModelReferenceDataset:
             case JobStatus.ERROR:
                 self.__data_metrics = None
             case JobStatus.SUCCEEDED | JobStatus.IMPORTING:
-                if self.__data_metrics is None or self.__status is JobStatus.IMPORTING:
+                if self.__data_metrics is None:
                     status, metrics = invoke(
                         method="GET",
                         url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/data-quality",
@@ -159,7 +159,7 @@ class ModelReferenceDataset:
                             "Unable to parse get metrics for non-binary models"
                         )
                 else:
-                    raise ClientError(f"Response does not contain 'modelQuality' key: {response.text}")
+                    return job_status, None
             except KeyError as _:
                 raise ClientError(f"Unable to parse response: {response.text}")
             except ValidationError as _:
@@ -169,7 +169,7 @@ class ModelReferenceDataset:
             case JobStatus.ERROR:
                 self.__model_metrics = None
             case JobStatus.SUCCEEDED | JobStatus.IMPORTING:
-                if self.__model_metrics is None or self.__status is JobStatus.IMPORTING:
+                if self.__model_metrics is None:
                     status, metrics = invoke(
                         method="GET",
                         url=f"{self.__base_url}/api/models/{str(self.__model_uuid)}/reference/model-quality",
