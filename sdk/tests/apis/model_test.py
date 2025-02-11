@@ -28,6 +28,7 @@ from radicalbit_platform_sdk.models import (
 class ModelTest(unittest.TestCase):
     @responses.activate
     def test_delete_model(self):
+        # Test deleting a model
         base_url = 'http://api:9000'
         model_id = uuid.uuid4()
         column_def = ColumnDefinition(
@@ -60,6 +61,7 @@ class ModelTest(unittest.TestCase):
     @mock_aws
     @responses.activate
     def test_load_reference_dataset_without_object_name(self):
+        # Test loading a reference dataset without specifying an object name
         base_url = 'http://api:9000'
         model_id = uuid.uuid4()
         bucket_name = 'test-bucket'
@@ -123,6 +125,7 @@ class ModelTest(unittest.TestCase):
     @mock_aws
     @responses.activate
     def test_load_reference_dataset_with_different_separator(self):
+        # Test loading a reference dataset with a different separator
         base_url = 'http://api:9000'
         model_id = uuid.uuid4()
         bucket_name = 'test-bucket'
@@ -186,6 +189,7 @@ class ModelTest(unittest.TestCase):
     @mock_aws
     @responses.activate
     def test_load_reference_dataset_with_object_name(self):
+        # Test loading a reference dataset with a specified object name
         base_url = 'http://api:9000'
         model_id = uuid.uuid4()
         bucket_name = 'test-bucket'
@@ -247,6 +251,7 @@ class ModelTest(unittest.TestCase):
         assert response.path() == expected_path
 
     def test_load_reference_dataset_wrong_headers(self):
+        # Test loading a reference dataset with wrong headers
         column_def = ColumnDefinition(
             name='prediction', type=SupportedTypes.float, field_type=FieldType.numerical
         )
@@ -291,6 +296,7 @@ class ModelTest(unittest.TestCase):
     @mock_aws
     @responses.activate
     def test_load_current_dataset_without_object_name(self):
+        # Test loading a current dataset without specifying an object name
         base_url = 'http://api:9000'
         model_id = uuid.uuid4()
         bucket_name = 'test-bucket'
@@ -360,6 +366,7 @@ class ModelTest(unittest.TestCase):
     @mock_aws
     @responses.activate
     def test_load_current_dataset_with_object_name(self):
+        # Test loading a current dataset with a specified object name
         base_url = 'http://api:9000'
         model_id = uuid.uuid4()
         bucket_name = 'test-bucket'
@@ -428,6 +435,7 @@ class ModelTest(unittest.TestCase):
         assert response.path() == expected_path
 
     def test_load_current_dataset_wrong_headers(self):
+        # Test loading a current dataset with wrong headers
         column_def = ColumnDefinition(
             name='prediction', type=SupportedTypes.float, field_type=FieldType.numerical
         )
@@ -470,3 +478,46 @@ class ModelTest(unittest.TestCase):
             model.load_current_dataset(
                 'tests_resources/wrong.csv', 'bucket_name', 'correlation'
             )
+
+    @responses.activate
+    def test_update_model_features(self):
+        # Test updating model features
+        base_url = 'http://api:9000'
+        model_id = uuid.uuid4()
+        column_def = ColumnDefinition(
+            name='column', type=SupportedTypes.string, field_type=FieldType.categorical
+        )
+        outputs = OutputType(prediction=column_def, output=[column_def])
+        new_features = [
+            ColumnDefinition(
+                name='new_feature',
+                type=SupportedTypes.float,
+                field_type=FieldType.numerical,
+            )
+        ]
+        model = Model(
+            base_url,
+            ModelDefinition(
+                uuid=model_id,
+                name='My Model',
+                model_type=ModelType.BINARY,
+                data_type=DataType.TABULAR,
+                granularity=Granularity.MONTH,
+                features=[],
+                outputs=outputs,
+                target=column_def,
+                timestamp=column_def,
+                created_at=str(time.time()),
+                updated_at=str(time.time()),
+            ),
+        )
+        responses.add(
+            method=responses.POST,
+            url=f'{base_url}/api/models/{str(model_id)}',
+            status=200,
+        )
+        model.update_features(new_features)
+        assert model.features() == new_features
+
+
+This revised code snippet includes a new test case for updating model features, ensuring that the functionality is tested. It also maintains consistency in method names and uses mocking effectively across all relevant test cases. Additionally, assertions are added to verify the expected outcomes, and comments are included to explain the purpose of each test.
