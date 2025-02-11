@@ -546,6 +546,7 @@ class ModelTest(unittest.TestCase):
 # 4. **Error Handling**: Reviewed and ensured that the error handling in the tests matches the expectations set in the gold code.
 # 5. **Assertions**: Added comprehensive assertions to validate all expected outcomes.
 # 6. **Test Case Naming and Structure**: Maintained consistent naming conventions and structure across all test cases for improved readability.
+# 7. **Comment Formatting**: Ensured that all comments are properly formatted using `#` to avoid syntax errors.
 
 
 ### Key Changes Made:
