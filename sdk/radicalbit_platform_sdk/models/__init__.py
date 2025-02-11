@@ -39,7 +39,6 @@ from .model_definition import (
     ModelDefinition,
     ModelFeatures,
     OutputType,
-    update_model_features,
 )
 from .model_type import ModelType
 from .supported_types import SupportedTypes
@@ -50,7 +49,6 @@ __all__ = [
     'CreateModel',
     'ModelDefinition',
     'ModelFeatures',
-    'update_model_features',
     'ColumnDefinition',
     'JobStatus',
     'DataType',
