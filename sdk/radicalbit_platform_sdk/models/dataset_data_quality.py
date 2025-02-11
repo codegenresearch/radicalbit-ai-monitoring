@@ -3,33 +3,13 @@ from pydantic.alias_generators import to_camel
 from typing import List, Optional, Union
 
 
-class Histogram(BaseModel):
-    buckets: List[float]
-    reference_values: List[int]
-    current_values: Optional[List[int]] = None
-
-    model_config = ConfigDict(
-        populate_by_name=True, alias_generator=to_camel
-    )
-
-
-class ClassMetrics(BaseModel):
-    name: str
-    count: int
-    percentage: Optional[float] = None
-
-    model_config = ConfigDict(
-        populate_by_name=True
-    )
-
-
 class MedianMetrics(BaseModel):
     perc_25: Optional[float] = None
     median: Optional[float] = None
     perc_75: Optional[float] = None
 
     model_config = ConfigDict(
-        populate_by_name=True, alias_generator=to_camel
+        populate_by_name=True, alias_generator=to_camel, protected_namespaces=()
     )
 
 
@@ -38,7 +18,7 @@ class MissingValue(BaseModel):
     percentage: Optional[float] = None
 
     model_config = ConfigDict(
-        populate_by_name=True
+        populate_by_name=True, alias_generator=to_camel, protected_namespaces=()
     )
 
 
@@ -48,7 +28,17 @@ class ClassMedianMetrics(BaseModel):
     median_metrics: MedianMetrics
 
     model_config = ConfigDict(
-        populate_by_name=True, alias_generator=to_camel
+        populate_by_name=True, alias_generator=to_camel, protected_namespaces=()
+    )
+
+
+class Histogram(BaseModel):
+    buckets: List[float]
+    reference_values: List[int]
+    current_values: Optional[List[int]] = None
+
+    model_config = ConfigDict(
+        populate_by_name=True, alias_generator=to_camel, protected_namespaces=()
     )
 
 
@@ -58,7 +48,7 @@ class FeatureMetrics(BaseModel):
     missing_value: MissingValue
 
     model_config = ConfigDict(
-        populate_by_name=True, alias_generator=to_camel
+        populate_by_name=True, alias_generator=to_camel, protected_namespaces=()
     )
 
 
@@ -73,7 +63,7 @@ class NumericalFeatureMetrics(FeatureMetrics):
     histogram: Histogram
 
     model_config = ConfigDict(
-        populate_by_name=True, alias_generator=to_camel
+        populate_by_name=True, alias_generator=to_camel, protected_namespaces=()
     )
 
 
@@ -83,7 +73,7 @@ class CategoryFrequency(BaseModel):
     frequency: Optional[float] = None
 
     model_config = ConfigDict(
-        populate_by_name=True
+        populate_by_name=True, alias_generator=to_camel, protected_namespaces=()
     )
 
 
@@ -93,7 +83,17 @@ class CategoricalFeatureMetrics(FeatureMetrics):
     distinct_value: int
 
     model_config = ConfigDict(
-        populate_by_name=True, alias_generator=to_camel
+        populate_by_name=True, alias_generator=to_camel, protected_namespaces=()
+    )
+
+
+class ClassMetrics(BaseModel):
+    name: str
+    count: int
+    percentage: Optional[float] = None
+
+    model_config = ConfigDict(
+        populate_by_name=True, alias_generator=to_camel, protected_namespaces=()
     )
 
 
@@ -110,6 +110,7 @@ class BinaryClassificationDataQuality(DataQuality):
         arbitrary_types_allowed=True,
         populate_by_name=True,
         alias_generator=to_camel,
+        protected_namespaces=(),
     )
 
 
