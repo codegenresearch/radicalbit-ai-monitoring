@@ -3,6 +3,14 @@ from pydantic.alias_generators import to_camel
 from typing import List, Optional, Union
 
 
+class ClassMetrics(BaseModel):
+    name: str
+    count: int
+    percentage: Optional[float] = None
+
+    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
+
+
 class MedianMetrics(BaseModel):
     perc_25: Optional[float] = None
     median: Optional[float] = None
@@ -15,15 +23,7 @@ class MissingValue(BaseModel):
     count: int
     percentage: Optional[float] = None
 
-    model_config = ConfigDict(populate_by_name=True)
-
-
-class ClassMetrics(BaseModel):
-    name: str
-    count: int
-    percentage: Optional[float] = None
-
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
 
 
 class ClassMedianMetrics(BaseModel):
