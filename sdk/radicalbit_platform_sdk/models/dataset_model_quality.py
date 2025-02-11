@@ -4,10 +4,12 @@ from typing import Optional
 
 
 class ModelQuality(BaseModel):
+    """Base class for model quality metrics."""
     pass
 
 
 class BinaryClassificationModelQuality(ModelQuality):
+    """Class for binary classification model quality metrics."""
     f1: Optional[float] = None
     accuracy: Optional[float] = None
     precision: Optional[float] = None
@@ -35,8 +37,10 @@ class BinaryClassificationModelQuality(ModelQuality):
 
 
 class MultiClassModelQuality(ModelQuality):
+    """Class for multi-class model quality metrics."""
     pass
 
 
 class RegressionModelQuality(ModelQuality):
+    """Class for regression model quality metrics."""
     pass
