@@ -65,11 +65,11 @@ class ModelReferenceDataset:
                         response_json["statistics"]
                     )
                 else:
-                    raise ClientError(f"Response does not contain 'statistics' key: {response.text}")
-            except KeyError as e:
-                raise ClientError(f"Unable to parse response: {response.text}") from e
-            except ValidationError as e:
-                raise ClientError(f"Unable to parse response: {response.text}") from e
+                    return job_status, None
+            except KeyError as _:
+                return JobStatus.ERROR, None
+            except ValidationError as _:
+                return JobStatus.ERROR, None
 
         match self.__status:
             case JobStatus.ERROR:
@@ -115,15 +115,13 @@ class ModelReferenceDataset:
                             ),
                         )
                     else:
-                        raise ClientError(
-                            "Unable to parse get metrics for not binary models"
-                        )
+                        return job_status, None
                 else:
-                    raise ClientError(f"Response does not contain 'dataQuality' key: {response.text}")
-            except KeyError as e:
-                raise ClientError(f"Unable to parse response: {response.text}") from e
-            except ValidationError as e:
-                raise ClientError(f"Unable to parse response: {response.text}") from e
+                    return job_status, None
+            except KeyError as _:
+                return JobStatus.ERROR, None
+            except ValidationError as _:
+                return JobStatus.ERROR, None
 
         match self.__status:
             case JobStatus.ERROR:
@@ -171,15 +169,13 @@ class ModelReferenceDataset:
                             ),
                         )
                     else:
-                        raise ClientError(
-                            "Unable to parse get metrics for not binary models"
-                        )
+                        return job_status, None
                 else:
-                    raise ClientError(f"Response does not contain 'modelQuality' key: {response.text}")
-            except KeyError as e:
-                raise ClientError(f"Unable to parse response: {response.text}") from e
-            except ValidationError as e:
-                raise ClientError(f"Unable to parse response: {response.text}") from e
+                    return job_status, None
+            except KeyError as _:
+                return JobStatus.ERROR, None
+            except ValidationError as _:
+                return JobStatus.ERROR, None
 
         match self.__status:
             case JobStatus.ERROR:
