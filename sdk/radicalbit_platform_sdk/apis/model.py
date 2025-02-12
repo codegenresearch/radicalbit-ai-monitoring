@@ -19,7 +19,6 @@ from radicalbit_platform_sdk.models import (
     FileReference,
     Granularity,
     ModelDefinition,
-    ModelFeatures,
     ModelType,
     OutputType,
     ReferenceFileUpload,
@@ -78,23 +77,8 @@ class Model:
     def algorithm(self) -> Optional[str]:
         return self.__algorithm
 
-    def update_features(self, features: List[ColumnDefinition]) -> None:
-        def __callback(_: requests.Response) -> None:
-            self.__features = features
-
-        invoke(
-            method='POST',
-            url=f'{self.__base_url}/api/models/{str(self.__uuid)}',
-            valid_response_code=200,
-            data=ModelFeatures(features=features).model_dump_json(),
-            func=__callback,
-        )
-
     def delete(self) -> None:
-        """Delete the actual `Model` from the platform
-
-        :return: None
-        """
+        """Delete the actual `Model` from the platform\n\n        :return: None\n        """
         invoke(
             method='DELETE',
             url=f'{self.__base_url}/api/models/{str(self.__uuid)}',
@@ -154,17 +138,7 @@ class Model:
         aws_credentials: Optional[AwsCredentials] = None,
         separator: str = ',',
     ) -> ModelReferenceDataset:
-        """Upload reference dataset to an S3 bucket and then bind it inside the platform.
-
-        Raises `ClientError` in case S3 upload fails.
-
-        :param file_name: The name of the reference file.
-        :param bucket: The name of the S3 bucket.
-        :param object_name: The optional name of the object uploaded to S3. Default value is None.
-        :param aws_credentials: AWS credentials used to connect to S3 bucket. Default value is None.
-        :param separator: Optional value to define separator used inside CSV file. Default value is ","
-        :return: An instance of `ModelReferenceDataset` representing the reference dataset
-        """
+        """Upload reference dataset to an S3 bucket and then bind it inside the platform.\n\n        Raises `ClientError` in case S3 upload fails.\n\n        :param file_name: The name of the reference file.\n        :param bucket: The name of the S3 bucket.\n        :param object_name: The optional name of the object uploaded to S3. Default value is None.\n        :param aws_credentials: AWS credentials used to connect to S3 bucket. Default value is None.\n        :param separator: Optional value to define separator used inside CSV file. Default value is ","\n        :return: An instance of `ModelReferenceDataset` representing the reference dataset\n        """
 
         file_headers = pd.read_csv(
             file_name, nrows=0, delimiter=separator
@@ -177,34 +151,7 @@ class Model:
                 object_name = f'{self.__uuid}/reference/{os.path.basename(file_name)}'
 
             try:
-                s3_client = boto3.client(
-                    's3',
-                    aws_access_key_id=(
-                        None
-                        if aws_credentials is None
-                        else aws_credentials.access_key_id
-                    ),
-                    aws_secret_access_key=(
-                        None
-                        if aws_credentials is None
-                        else aws_credentials.secret_access_key
-                    ),
-                    region_name=(
-                        None
-                        if aws_credentials is None
-                        else aws_credentials.default_region
-                    ),
-                    endpoint_url=(
-                        None
-                        if aws_credentials is None
-                        else (
-                            None
-                            if aws_credentials.endpoint_url is None
-                            else aws_credentials.endpoint_url
-                        )
-                    ),
-                )
-
+                s3_client = self.__get_s3_client(aws_credentials)
                 s3_client.upload_file(
                     file_name,
                     bucket,
@@ -235,41 +182,12 @@ class Model:
         aws_credentials: Optional[AwsCredentials] = None,
         separator: str = ',',
     ) -> ModelReferenceDataset:
-        """Bind an existing reference dataset file already uploaded to S3 to a `Model`
-
-        :param dataset_url: The url of the file already uploaded inside S3
-        :param aws_credentials: AWS credentials used to connect to S3 bucket. Default value is None.
-        :param separator: Optional value to define separator used inside CSV file. Default value is ","
-        :return: An instance of `ModelReferenceDataset` representing the reference dataset
-        """
+        """Bind an existing reference dataset file already uploaded to S3 to a `Model`\n\n        :param dataset_url: The url of the file already uploaded inside S3\n        :param aws_credentials: AWS credentials used to connect to S3 bucket. Default value is None.\n        :param separator: Optional value to define separator used inside CSV file. Default value is ","\n        :return: An instance of `ModelReferenceDataset` representing the reference dataset\n        """
 
         url_parts = dataset_url.replace('s3://', '').split('/')
 
         try:
-            s3_client = boto3.client(
-                's3',
-                aws_access_key_id=(
-                    None if aws_credentials is None else aws_credentials.access_key_id
-                ),
-                aws_secret_access_key=(
-                    None
-                    if aws_credentials is None
-                    else aws_credentials.secret_access_key
-                ),
-                region_name=(
-                    None if aws_credentials is None else aws_credentials.default_region
-                ),
-                endpoint_url=(
-                    None
-                    if aws_credentials is None
-                    else (
-                        None
-                        if aws_credentials.endpoint_url is None
-                        else aws_credentials.endpoint_url
-                    )
-                ),
-            )
-
+            s3_client = self.__get_s3_client(aws_credentials)
             chunks_iterator = s3_client.get_object(
                 Bucket=url_parts[0], Key='/'.join(url_parts[1:])
             )['Body'].iter_chunks()
@@ -302,18 +220,7 @@ class Model:
         aws_credentials: Optional[AwsCredentials] = None,
         separator: str = ',',
     ) -> ModelCurrentDataset:
-        """Upload current dataset to an S3 bucket and then bind it inside the platform.
-
-        Raises `ClientError` in case S3 upload fails.
-
-        :param file_name: The name of the reference file.
-        :param bucket: The name of the S3 bucket.
-        :param correlation_id_column: The name of the column used for correlation id
-        :param object_name: The optional name of the object uploaded to S3. Default value is None.
-        :param aws_credentials: AWS credentials used to connect to S3 bucket. Default value is None.
-        :param separator: Optional value to define separator used inside CSV file. Default value is ","
-        :return: An instance of `ModelReferenceDataset` representing the reference dataset
-        """
+        """Upload current dataset to an S3 bucket and then bind it inside the platform.\n\n        Raises `ClientError` in case S3 upload fails.\n\n        :param file_name: The name of the reference file.\n        :param bucket: The name of the S3 bucket.\n        :param correlation_id_column: The name of the column used for correlation id\n        :param object_name: The optional name of the object uploaded to S3. Default value is None.\n        :param aws_credentials: AWS credentials used to connect to S3 bucket. Default value is None.\n        :param separator: Optional value to define separator used inside CSV file. Default value is ","\n        :return: An instance of `ModelReferenceDataset` representing the reference dataset\n        """
 
         file_headers = pd.read_csv(
             file_name, nrows=0, delimiter=separator
@@ -329,34 +236,7 @@ class Model:
                 object_name = f'{self.__uuid}/current/{os.path.basename(file_name)}'
 
             try:
-                s3_client = boto3.client(
-                    's3',
-                    aws_access_key_id=(
-                        None
-                        if aws_credentials is None
-                        else aws_credentials.access_key_id
-                    ),
-                    aws_secret_access_key=(
-                        None
-                        if aws_credentials is None
-                        else aws_credentials.secret_access_key
-                    ),
-                    region_name=(
-                        None
-                        if aws_credentials is None
-                        else aws_credentials.default_region
-                    ),
-                    endpoint_url=(
-                        None
-                        if aws_credentials is None
-                        else (
-                            None
-                            if aws_credentials.endpoint_url is None
-                            else aws_credentials.endpoint_url
-                        )
-                    ),
-                )
-
+                s3_client = self.__get_s3_client(aws_credentials)
                 s3_client.upload_file(
                     file_name,
                     bucket,
@@ -388,42 +268,12 @@ class Model:
         aws_credentials: Optional[AwsCredentials] = None,
         separator: str = ',',
     ) -> ModelCurrentDataset:
-        """Bind an existing current dataset file already uploaded to S3 to a `Model`
-
-        :param dataset_url: The url of the file already uploaded inside S3
-        :param correlation_id_column: The name of the column used for correlation id
-        :param aws_credentials: AWS credentials used to connect to S3 bucket. Default value is None.
-        :param separator: Optional value to define separator used inside CSV file. Default value is ","
-        :return: An instance of `ModelReferenceDataset` representing the reference dataset
-        """
+        """Bind an existing current dataset file already uploaded to S3 to a `Model`\n\n        :param dataset_url: The url of the file already uploaded inside S3\n        :param correlation_id_column: The name of the column used for correlation id\n        :param aws_credentials: AWS credentials used to connect to S3 bucket. Default value is None.\n        :param separator: Optional value to define separator used inside CSV file. Default value is ","\n        :return: An instance of `ModelReferenceDataset` representing the reference dataset\n        """
 
         url_parts = dataset_url.replace('s3://', '').split('/')
 
         try:
-            s3_client = boto3.client(
-                's3',
-                aws_access_key_id=(
-                    None if aws_credentials is None else aws_credentials.access_key_id
-                ),
-                aws_secret_access_key=(
-                    None
-                    if aws_credentials is None
-                    else aws_credentials.secret_access_key
-                ),
-                region_name=(
-                    None if aws_credentials is None else aws_credentials.default_region
-                ),
-                endpoint_url=(
-                    None
-                    if aws_credentials is None
-                    else (
-                        None
-                        if aws_credentials.endpoint_url is None
-                        else aws_credentials.endpoint_url
-                    )
-                ),
-            )
-
+            s3_client = self.__get_s3_client(aws_credentials)
             chunks_iterator = s3_client.get_object(
                 Bucket=url_parts[0], Key='/'.join(url_parts[1:])
             )['Body'].iter_chunks()
@@ -450,6 +300,17 @@ class Model:
             raise ClientError(
                 f'Unable to get file {dataset_url} from remote storage: {e}'
             ) from e
+
+    def update_features(self, new_features: List[ColumnDefinition]) -> None:
+        """Update the features of the model.\n\n        :param new_features: List of new features to be added to the model.\n        :return: None\n        """
+        invoke(
+            method='POST',
+            url=f'{self.__base_url}/api/models/{str(self.__uuid)}',
+            valid_response_code=200,
+            func=lambda _: None,
+            data={'features': [feature.model_dump() for feature in new_features]},
+        )
+        self.__features = new_features
 
     def __bind_reference_dataset(
         self,
@@ -508,3 +369,28 @@ class Model:
         model_columns = self.__features + self.__outputs.output
         model_columns.append(self.__target)
         return [model_column.name for model_column in model_columns]
+
+    def __get_s3_client(self, aws_credentials: Optional[AwsCredentials] = None):
+        return boto3.client(
+            's3',
+            aws_access_key_id=(
+                None if aws_credentials is None else aws_credentials.access_key_id
+            ),
+            aws_secret_access_key=(
+                None
+                if aws_credentials is None
+                else aws_credentials.secret_access_key
+            ),
+            region_name=(
+                None if aws_credentials is None else aws_credentials.default_region
+            ),
+            endpoint_url=(
+                None
+                if aws_credentials is None
+                else (
+                    None
+                    if aws_credentials.endpoint_url is None
+                    else aws_credentials.endpoint_url
+                )
+            ),
+        )
