@@ -37,18 +37,26 @@ from .model_definition import (
     CreateModel,
     Granularity,
     ModelDefinition,
-    ModelFeatures,
     OutputType,
 )
 from .model_type import ModelType
 from .supported_types import SupportedTypes
+from pydantic import BaseModel, ConfigDict, TypeAdapter
+from typing import List, Optional
+
+class ModelFeatures(BaseModel):
+    features: List[ColumnDefinition]
+
+    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
+
+    def update_features(self, new_features: List[ColumnDefinition]):
+        self.features.extend(new_features)
 
 __all__ = [
     'OutputType',
     'Granularity',
     'CreateModel',
     'ModelDefinition',
-    'ModelFeatures',
     'ColumnDefinition',
     'JobStatus',
     'DataType',
@@ -82,4 +90,5 @@ __all__ = [
     'AwsCredentials',
     'SupportedTypes',
     'FieldType',
+    'ModelFeatures',
 ]
