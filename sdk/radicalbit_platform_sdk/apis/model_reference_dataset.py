@@ -48,11 +48,7 @@ class ModelReferenceDataset:
         return self.__status
 
     def statistics(self) -> Optional[DatasetStats]:
-        """
-        Get statistics about the current dataset
-
-        :return: The `DatasetStats` if exists
-        """
+        """\n        Get statistics about the current dataset\n\n        :return: The `DatasetStats` if exists\n        """
 
         def __callback(
             response: requests.Response,
@@ -96,15 +92,9 @@ class ModelReferenceDataset:
         return self.__statistics
 
     def data_quality(self) -> Optional[DataQuality]:
-        """
-        Get data quality metrics about the current dataset
+        """\n        Get data quality metrics about the current dataset\n\n        :return: The `DataQuality` if exists\n        """
 
-        :return: The `DataQuality` if exists
-        """
-
-        def __callback(
-            response: requests.Response,
-        ) -> tuple[JobStatus, Optional[DataQuality]]:
+        def __callback(response: requests.Response) -> Optional[DataQuality]:
             try:
                 response_json = response.json()
                 job_status = JobStatus(response_json["jobStatus"])
@@ -152,11 +142,7 @@ class ModelReferenceDataset:
         return self.__data_metrics
 
     def model_quality(self) -> Optional[ModelQuality]:
-        """
-        Get model quality metrics about the current dataset
-
-        :return: The `ModelQuality` if exists
-        """
+        """\n        Get model quality metrics about the current dataset\n\n        :return: The `ModelQuality` if exists\n        """
 
         def __callback(
             response: requests.Response,
