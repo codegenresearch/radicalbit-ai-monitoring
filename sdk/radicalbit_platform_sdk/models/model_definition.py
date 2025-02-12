@@ -25,29 +25,8 @@ class Granularity(str, Enum):
     MONTH = 'MONTH'
 
 
-class ModelFeatures(BaseModel):
-    features: List[ColumnDefinition]
-
-    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
-
-
 class BaseModelDefinition(BaseModel):
-    """A base class for model definition.
-
-    Attributes:
-        name: The name of the model.
-        description: An optional description to explain something about the model.
-        model_type: The type of the model
-        data_type: It explains the data type used by the model
-        granularity: The window used to calculate aggregated metrics
-        features: A list column representing the features set
-        outputs: An OutputType definition to explain the output of the model
-        target: The column used to represent model's target
-        timestamp: The column used to store when prediction was done
-        frameworks: An optional field to describe the frameworks used by the model
-        algorithm: An optional field to explain the algorithm used by the model
-
-    """
+    """Base class for model definitions.\n\n    Attributes:\n        name: The name of the model.\n        description: An optional description of the model.\n        model_type: The type of the model.\n        data_type: The data type used by the model.\n        granularity: The window used for aggregated metrics.\n        features: A list of column definitions representing the features.\n        outputs: An OutputType definition explaining the model's output.\n        target: The column definition representing the model's target.\n        timestamp: The column definition for storing prediction timestamps.\n        frameworks: An optional field for describing the frameworks used by the model.\n        algorithm: An optional field for explaining the algorithm used by the model.\n    """
 
     name: str
     description: Optional[str] = None
@@ -64,6 +43,26 @@ class BaseModelDefinition(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True, alias_generator=to_camel, protected_namespaces=()
     )
+
+    def get_numerical_features(self) -> List[ColumnDefinition]:
+        """Retrieve numerical features from the model's features."""
+        return [feature for feature in self.features if feature.is_numerical()]
+
+    def get_float_features(self) -> List[ColumnDefinition]:
+        """Retrieve float features from the model's features."""
+        return [feature for feature in self.features if feature.is_float()]
+
+    def get_int_features(self) -> List[ColumnDefinition]:
+        """Retrieve integer features from the model's features."""
+        return [feature for feature in self.features if feature.is_int()]
+
+    def get_categorical_features(self) -> List[ColumnDefinition]:
+        """Retrieve categorical features from the model's features."""
+        return [feature for feature in self.features if feature.is_categorical()]
+
+    def get_datetime_features(self) -> List[ColumnDefinition]:
+        """Retrieve datetime features from the model's features."""
+        return [feature for feature in self.features if feature.is_datetime()]
 
 
 class CreateModel(BaseModelDefinition):
