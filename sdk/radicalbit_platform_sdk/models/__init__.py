@@ -37,7 +37,6 @@ from .model_definition import (
     CreateModel,
     Granularity,
     ModelDefinition,
-    ModelFeatures,
     OutputType,
 )
 from .model_type import ModelType
@@ -48,7 +47,6 @@ __all__ = [
     'Granularity',
     'CreateModel',
     'ModelDefinition',
-    'ModelFeatures',
     'ColumnDefinition',
     'JobStatus',
     'DataType',
@@ -83,3 +81,9 @@ __all__ = [
     'SupportedTypes',
     'FieldType',
 ]
+
+# Example of dynamically adding model features
+def add_model_feature(model_definition: ModelDefinition, feature_name: str, feature_type: SupportedTypes, field_type: FieldType):
+    new_feature = ColumnDefinition(name=feature_name, type=feature_type, field_type=field_type)
+    model_definition.features.append(new_feature)
+    return model_definition
