@@ -2,7 +2,7 @@ from enum import Enum
 from typing import List, Optional
 import uuid as uuid_lib
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 from pydantic.alias_generators import to_camel
 
 from radicalbit_platform_sdk.models.column_definition import ColumnDefinition
@@ -28,33 +28,16 @@ class Granularity(str, Enum):
 class ModelFeatures(BaseModel):
     features: List[ColumnDefinition]
 
-    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
-
 
 class BaseModelDefinition(BaseModel):
-    """A base class for model definition.
-
-    Attributes:
-        name: The name of the model.
-        description: An optional description to explain something about the model.
-        model_type: The type of the model
-        data_type: It explains the data type used by the model
-        granularity: The window used to calculate aggregated metrics
-        features: A list column representing the features set
-        outputs: An OutputType definition to explain the output of the model
-        target: The column used to represent model's target
-        timestamp: The column used to store when prediction was done
-        frameworks: An optional field to describe the frameworks used by the model
-        algorithm: An optional field to explain the algorithm used by the model
-
-    """
+    """A base class for model definition.\n\n    Attributes:\n        name: The name of the model.\n        description: An optional description to explain something about the model.\n        model_type: The type of the model\n        data_type: It explains the data type used by the model\n        granularity: The window used to calculate aggregated metrics\n        features: A list column representing the features set\n        outputs: An OutputType definition to explain the output of the model\n        target: The column used to represent model's target\n        timestamp: The column used to store when prediction was done\n        frameworks: An optional field to describe the frameworks used by the model\n        algorithm: An optional field to explain the algorithm used by the model\n\n    """
 
     name: str
     description: Optional[str] = None
     model_type: ModelType
     data_type: DataType
     granularity: Granularity
-    features: List[ColumnDefinition]
+    features: ModelFeatures
     outputs: OutputType
     target: ColumnDefinition
     timestamp: ColumnDefinition
@@ -64,6 +47,26 @@ class BaseModelDefinition(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True, alias_generator=to_camel, protected_namespaces=()
     )
+
+    def get_numerical_features(self) -> List[ColumnDefinition]:
+        return TypeAdapter(List[ColumnDefinition]).validate_python(
+            [feature for feature in self.features.features if feature.is_numerical()]
+        )
+
+    def get_float_features(self) -> List[ColumnDefinition]:
+        return TypeAdapter(List[ColumnDefinition]).validate_python(
+            [feature for feature in self.features.features if feature.is_float()]
+        )
+
+    def get_int_features(self) -> List[ColumnDefinition]:
+        return TypeAdapter(List[ColumnDefinition]).validate_python(
+            [feature for feature in self.features.features if feature.is_int()]
+        )
+
+    def get_categorical_features(self) -> List[ColumnDefinition]:
+        return TypeAdapter(List[ColumnDefinition]).validate_python(
+            [feature for feature in self.features.features if feature.is_categorical()]
+        )
 
 
 class CreateModel(BaseModelDefinition):
