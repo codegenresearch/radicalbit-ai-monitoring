@@ -25,29 +25,8 @@ class Granularity(str, Enum):
     MONTH = 'MONTH'
 
 
-class ModelFeatures(BaseModel):
-    features: List[ColumnDefinition]
-
-    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
-
-
 class BaseModelDefinition(BaseModel):
-    """A base class for model definition.
-
-    Attributes:
-        name: The name of the model.
-        description: An optional description to explain something about the model.
-        model_type: The type of the model
-        data_type: It explains the data type used by the model
-        granularity: The window used to calculate aggregated metrics
-        features: A list column representing the features set
-        outputs: An OutputType definition to explain the output of the model
-        target: The column used to represent model's target
-        timestamp: The column used to store when prediction was done
-        frameworks: An optional field to describe the frameworks used by the model
-        algorithm: An optional field to explain the algorithm used by the model
-
-    """
+    """A base class for model definition.\n\n    Attributes:\n        name: The name of the model.\n        description: An optional description to explain something about the model.\n        model_type: The type of the model\n        data_type: It explains the data type used by the model\n        granularity: The window used to calculate aggregated metrics\n        features: A list column representing the features set\n        outputs: An OutputType definition to explain the output of the model\n        target: The column used to represent model's target\n        timestamp: The column used to store when prediction was done\n        frameworks: An optional field to describe the frameworks used by the model\n        algorithm: An optional field to explain the algorithm used by the model\n\n    """
 
     name: str
     description: Optional[str] = None
@@ -76,3 +55,43 @@ class ModelDefinition(BaseModelDefinition):
     updated_at: str = Field(alias='updatedAt')
 
     model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
+
+
+# Model features management functionality
+def get_numerical_features(model: ModelDefinition) -> List[ColumnDefinition]:
+    return [feature for feature in model.features if feature.is_numerical()]
+
+
+def get_float_features(model: ModelDefinition) -> List[ColumnDefinition]:
+    return [feature for feature in model.features if feature.is_float()]
+
+
+def get_int_features(model: ModelDefinition) -> List[ColumnDefinition]:
+    return [feature for feature in model.features if feature.is_int()]
+
+
+def get_categorical_features(model: ModelDefinition) -> List[ColumnDefinition]:
+    return [feature for feature in model.features if feature.is_categorical()]
+
+
+# Consistent naming conventions
+class ColumnDefinition:
+    def __init__(self, name: str, type: str, field_type: str):
+        self.name = name
+        self.type = type
+        self.field_type = field_type
+
+    def is_numerical(self) -> bool:
+        return self.field_type == 'numerical'
+
+    def is_float(self) -> bool:
+        return self.field_type == 'numerical' and self.type == 'float'
+
+    def is_int(self) -> bool:
+        return self.field_type == 'numerical' and self.type == 'int'
+
+    def is_categorical(self) -> bool:
+        return self.field_type == 'categorical'
+
+    def is_datetime(self) -> bool:
+        return self.field_type == 'datetime'
