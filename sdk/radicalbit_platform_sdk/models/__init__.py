@@ -37,18 +37,23 @@ from .model_definition import (
     CreateModel,
     Granularity,
     ModelDefinition,
-    ModelFeatures,
     OutputType,
 )
 from .model_type import ModelType
 from .supported_types import SupportedTypes
+from typing import List
+
+class ModelFeatures(BaseModel):
+    features: List[ColumnDefinition]
+
+    def update_features(self, new_features: List[ColumnDefinition]):
+        self.features = new_features
 
 __all__ = [
     'OutputType',
     'Granularity',
     'CreateModel',
     'ModelDefinition',
-    'ModelFeatures',
     'ColumnDefinition',
     'JobStatus',
     'DataType',
@@ -82,4 +87,5 @@ __all__ = [
     'AwsCredentials',
     'SupportedTypes',
     'FieldType',
+    'ModelFeatures',
 ]
