@@ -37,8 +37,8 @@ from .model_definition import (
     CreateModel,
     Granularity,
     ModelDefinition,
-    ModelFeatures,
     OutputType,
+    ModelFeatures,  # Enhanced model definition
 )
 from .model_type import ModelType
 from .supported_types import SupportedTypes
@@ -48,7 +48,6 @@ __all__ = [
     'Granularity',
     'CreateModel',
     'ModelDefinition',
-    'ModelFeatures',
     'ColumnDefinition',
     'JobStatus',
     'DataType',
@@ -82,4 +81,5 @@ __all__ = [
     'AwsCredentials',
     'SupportedTypes',
     'FieldType',
+    'ModelFeatures',  # Added feature updating functionality
 ]
