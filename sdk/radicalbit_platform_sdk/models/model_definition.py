@@ -9,14 +9,18 @@ from radicalbit_platform_sdk.models.column_definition import ColumnDefinition
 from radicalbit_platform_sdk.models.data_type import DataType
 from radicalbit_platform_sdk.models.model_type import ModelType
 
-
-class OutputType(BaseModel):
-    prediction: ColumnDefinition
-    prediction_proba: Optional[ColumnDefinition] = None
-    output: List[ColumnDefinition]
-
-    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
-
+# Import necessary components for enhanced functionality and code organization
+from spark.jobs.utils.models import (
+    JobStatus,
+    SupportedTypes,
+    FieldTypes,
+    ModelType,
+    DataType,
+    Granularity,
+    ColumnDefinition,
+    OutputType,
+    ModelOut
+)
 
 class Granularity(str, Enum):
     HOUR = 'HOUR'
@@ -24,30 +28,8 @@ class Granularity(str, Enum):
     WEEK = 'WEEK'
     MONTH = 'MONTH'
 
-
-class ModelFeatures(BaseModel):
-    features: List[ColumnDefinition]
-
-    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
-
-
 class BaseModelDefinition(BaseModel):
-    """A base class for model definition.
-
-    Attributes:
-        name: The name of the model.
-        description: An optional description to explain something about the model.
-        model_type: The type of the model
-        data_type: It explains the data type used by the model
-        granularity: The window used to calculate aggregated metrics
-        features: A list column representing the features set
-        outputs: An OutputType definition to explain the output of the model
-        target: The column used to represent model's target
-        timestamp: The column used to store when prediction was done
-        frameworks: An optional field to describe the frameworks used by the model
-        algorithm: An optional field to explain the algorithm used by the model
-
-    """
+    """A base class for model definition.\n\n    Attributes:\n        name: The name of the model.\n        description: An optional description to explain something about the model.\n        model_type: The type of the model\n        data_type: It explains the data type used by the model\n        granularity: The window used to calculate aggregated metrics\n        features: A list column representing the features set\n        outputs: An OutputType definition to explain the output of the model\n        target: The column used to represent model's target\n        timestamp: The column used to store when prediction was done\n        frameworks: An optional field to describe the frameworks used by the model\n        algorithm: An optional field to explain the algorithm used by the model\n\n    """
 
     name: str
     description: Optional[str] = None
@@ -65,10 +47,8 @@ class BaseModelDefinition(BaseModel):
         populate_by_name=True, alias_generator=to_camel, protected_namespaces=()
     )
 
-
 class CreateModel(BaseModelDefinition):
     model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
-
 
 class ModelDefinition(BaseModelDefinition):
     uuid: uuid_lib.UUID = Field(default_factory=lambda: uuid_lib.uuid4())
