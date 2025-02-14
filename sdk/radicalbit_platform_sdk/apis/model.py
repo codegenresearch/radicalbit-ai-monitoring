@@ -19,7 +19,6 @@ from radicalbit_platform_sdk.models import (
     FileReference,
     Granularity,
     ModelDefinition,
-    ModelFeatures,
     ModelType,
     OutputType,
     ReferenceFileUpload,
@@ -78,29 +77,19 @@ class Model:
     def algorithm(self) -> Optional[str]:
         return self.__algorithm
 
-    def update_features(self, features: List[ColumnDefinition]) -> None:
-        def __callback(_: requests.Response) -> None:
-            self.__features = features
-
-        invoke(
-            method='POST',
-            url=f'{self.__base_url}/api/models/{str(self.__uuid)}',
-            valid_response_code=200,
-            data=ModelFeatures(features=features).model_dump_json(),
-            func=__callback,
-        )
-
     def delete(self) -> None:
-        """Delete the actual `Model` from the platform
-
-        :return: None
-        """
+        """Delete the actual `Model` from the platform\n\n        :return: None\n        """
         invoke(
             method='DELETE',
             url=f'{self.__base_url}/api/models/{str(self.__uuid)}',
             valid_response_code=200,
             func=lambda _: None,
         )
+
+    def update_features(self, new_features: List[ColumnDefinition]) -> None:
+        """Update the features of the model\n\n        :param new_features: List of new features to be added to the model\n        :return: None\n        """
+        self.__features = new_features
+        self.__update_model_definition()
 
     def get_reference_datasets(self) -> List[ModelReferenceDataset]:
         def __callback(response: requests.Response) -> List[ModelReferenceDataset]:
@@ -154,17 +143,7 @@ class Model:
         aws_credentials: Optional[AwsCredentials] = None,
         separator: str = ',',
     ) -> ModelReferenceDataset:
-        """Upload reference dataset to an S3 bucket and then bind it inside the platform.
-
-        Raises `ClientError` in case S3 upload fails.
-
-        :param file_name: The name of the reference file.
-        :param bucket: The name of the S3 bucket.
-        :param object_name: The optional name of the object uploaded to S3. Default value is None.
-        :param aws_credentials: AWS credentials used to connect to S3 bucket. Default value is None.
-        :param separator: Optional value to define separator used inside CSV file. Default value is ","
-        :return: An instance of `ModelReferenceDataset` representing the reference dataset
-        """
+        """Upload reference dataset to an S3 bucket and then bind it inside the platform.\n\n        Raises `ClientError` in case S3 upload fails.\n\n        :param file_name: The name of the reference file.\n        :param bucket: The name of the S3 bucket.\n        :param object_name: The optional name of the object uploaded to S3. Default value is None.\n        :param aws_credentials: AWS credentials used to connect to S3 bucket. Default value is None.\n        :param separator: Optional value to define separator used inside CSV file. Default value is ","\n        :return: An instance of `ModelReferenceDataset` representing the reference dataset\n        """
 
         file_headers = pd.read_csv(
             file_name, nrows=0, delimiter=separator
@@ -235,13 +214,7 @@ class Model:
         aws_credentials: Optional[AwsCredentials] = None,
         separator: str = ',',
     ) -> ModelReferenceDataset:
-        """Bind an existing reference dataset file already uploaded to S3 to a `Model`
-
-        :param dataset_url: The url of the file already uploaded inside S3
-        :param aws_credentials: AWS credentials used to connect to S3 bucket. Default value is None.
-        :param separator: Optional value to define separator used inside CSV file. Default value is ","
-        :return: An instance of `ModelReferenceDataset` representing the reference dataset
-        """
+        """Bind an existing reference dataset file already uploaded to S3 to a `Model`\n\n        :param dataset_url: The url of the file already uploaded inside S3\n        :param aws_credentials: AWS credentials used to connect to S3 bucket. Default value is None.\n        :param separator: Optional value to define separator used inside CSV file. Default value is ","\n        :return: An instance of `ModelReferenceDataset` representing the reference dataset\n        """
 
         url_parts = dataset_url.replace('s3://', '').split('/')
 
@@ -302,18 +275,7 @@ class Model:
         aws_credentials: Optional[AwsCredentials] = None,
         separator: str = ',',
     ) -> ModelCurrentDataset:
-        """Upload current dataset to an S3 bucket and then bind it inside the platform.
-
-        Raises `ClientError` in case S3 upload fails.
-
-        :param file_name: The name of the reference file.
-        :param bucket: The name of the S3 bucket.
-        :param correlation_id_column: The name of the column used for correlation id
-        :param object_name: The optional name of the object uploaded to S3. Default value is None.
-        :param aws_credentials: AWS credentials used to connect to S3 bucket. Default value is None.
-        :param separator: Optional value to define separator used inside CSV file. Default value is ","
-        :return: An instance of `ModelReferenceDataset` representing the reference dataset
-        """
+        """Upload current dataset to an S3 bucket and then bind it inside the platform.\n\n        Raises `ClientError` in case S3 upload fails.\n\n        :param file_name: The name of the reference file.\n        :param bucket: The name of the S3 bucket.\n        :param correlation_id_column: The name of the column used for correlation id\n        :param object_name: The optional name of the object uploaded to S3. Default value is None.\n        :param aws_credentials: AWS credentials used to connect to S3 bucket. Default value is None.\n        :param separator: Optional value to define separator used inside CSV file. Default value is ","\n        :return: An instance of `ModelReferenceDataset` representing the reference dataset\n        """
 
         file_headers = pd.read_csv(
             file_name, nrows=0, delimiter=separator
@@ -388,14 +350,7 @@ class Model:
         aws_credentials: Optional[AwsCredentials] = None,
         separator: str = ',',
     ) -> ModelCurrentDataset:
-        """Bind an existing current dataset file already uploaded to S3 to a `Model`
-
-        :param dataset_url: The url of the file already uploaded inside S3
-        :param correlation_id_column: The name of the column used for correlation id
-        :param aws_credentials: AWS credentials used to connect to S3 bucket. Default value is None.
-        :param separator: Optional value to define separator used inside CSV file. Default value is ","
-        :return: An instance of `ModelReferenceDataset` representing the reference dataset
-        """
+        """Bind an existing current dataset file already uploaded to S3 to a `Model`\n\n        :param dataset_url: The url of the file already uploaded inside S3\n        :param correlation_id_column: The name of the column used for correlation id\n        :param aws_credentials: AWS credentials used to connect to S3 bucket. Default value is None.\n        :param separator: Optional value to define separator used inside CSV file. Default value is ","\n        :return: An instance of `ModelReferenceDataset` representing the reference dataset\n        """
 
         url_parts = dataset_url.replace('s3://', '').split('/')
 
@@ -508,3 +463,21 @@ class Model:
         model_columns = self.__features + self.__outputs.output
         model_columns.append(self.__target)
         return [model_column.name for model_column in model_columns]
+
+    def __update_model_definition(self) -> None:
+        """Update the model definition with the new features"""
+        updated_definition = ModelDefinition(
+            uuid=self.__uuid,
+            name=self.__name,
+            description=self.__description,
+            model_type=self.__model_type,
+            data_type=self.__data_type,
+            granularity=self.__granularity,
+            features=self.__features,
+            target=self.__target,
+            timestamp=self.__timestamp,
+            outputs=self.__outputs,
+            frameworks=self.__frameworks,
+            algorithm=self.__algorithm,
+        )
+        self.__definition = updated_definition
