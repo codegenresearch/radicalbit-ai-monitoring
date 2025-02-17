@@ -25,12 +25,6 @@ class Granularity(str, Enum):
     MONTH = 'MONTH'
 
 
-class ModelFeatures(BaseModel):
-    features: List[ColumnDefinition]
-
-    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
-
-
 class BaseModelDefinition(BaseModel):
     """A base class for model definition.
 
@@ -65,6 +59,17 @@ class BaseModelDefinition(BaseModel):
         populate_by_name=True, alias_generator=to_camel, protected_namespaces=()
     )
 
+    def add_feature(self, feature: ColumnDefinition):
+        """Add a new feature to the model."""
+        self.features.append(feature)
+
+    def update_feature(self, feature_name: str, new_feature: ColumnDefinition):
+        """Update an existing feature in the model."""
+        self.features = [
+            new_feature if feature.name == feature_name else feature
+            for feature in self.features
+        ]
+
 
 class CreateModel(BaseModelDefinition):
     model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
@@ -76,3 +81,10 @@ class ModelDefinition(BaseModelDefinition):
     updated_at: str = Field(alias='updatedAt')
 
     model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
+
+    def update_model(self, **kwargs):
+        """Update the model with new attributes."""
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+        self.updated_at = str(uuid_lib.uuid4())  # Update timestamp on change
