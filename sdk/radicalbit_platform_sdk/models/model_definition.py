@@ -25,28 +25,21 @@ class Granularity(str, Enum):
     MONTH = 'MONTH'
 
 
-class ModelFeatures(BaseModel):
-    features: List[ColumnDefinition]
-
-    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
-
-
 class BaseModelDefinition(BaseModel):
-    """A base class for model definition.
+    """Base class for model definitions.
 
     Attributes:
         name: The name of the model.
-        description: An optional description to explain something about the model.
-        model_type: The type of the model
-        data_type: It explains the data type used by the model
-        granularity: The window used to calculate aggregated metrics
-        features: A list column representing the features set
-        outputs: An OutputType definition to explain the output of the model
-        target: The column used to represent model's target
-        timestamp: The column used to store when prediction was done
-        frameworks: An optional field to describe the frameworks used by the model
-        algorithm: An optional field to explain the algorithm used by the model
-
+        description: An optional description of the model.
+        model_type: The type of the model.
+        data_type: The data type used by the model.
+        granularity: The granularity for aggregated metrics.
+        features: A list of column definitions representing the features.
+        outputs: OutputType definition explaining the model's output.
+        target: ColumnDefinition representing the model's target.
+        timestamp: ColumnDefinition for storing the prediction timestamp.
+        frameworks: Optional field describing the frameworks used.
+        algorithm: Optional field explaining the algorithm used.
     """
 
     name: str
@@ -65,13 +58,28 @@ class BaseModelDefinition(BaseModel):
         populate_by_name=True, alias_generator=to_camel, protected_namespaces=()
     )
 
+    def get_numerical_features(self) -> List[ColumnDefinition]:
+        return [feature for feature in self.features if feature.is_numerical()]
+
+    def get_float_features(self) -> List[ColumnDefinition]:
+        return [feature for feature in self.features if feature.is_float()]
+
+    def get_int_features(self) -> List[ColumnDefinition]:
+        return [feature for feature in self.features if feature.is_int()]
+
+    def get_categorical_features(self) -> List[ColumnDefinition]:
+        return [feature for feature in self.features if feature.is_categorical()]
+
+    def get_datetime_features(self) -> List[ColumnDefinition]:
+        return [feature for feature in self.features if feature.is_datetime()]
+
 
 class CreateModel(BaseModelDefinition):
     model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
 
 
 class ModelDefinition(BaseModelDefinition):
-    uuid: uuid_lib.UUID = Field(default_factory=lambda: uuid_lib.uuid4())
+    uuid: uuid_lib.UUID = Field(default_factory=uuid_lib.uuid4)
     created_at: str = Field(alias='createdAt')
     updated_at: str = Field(alias='updatedAt')
 
