@@ -19,7 +19,6 @@ from radicalbit_platform_sdk.models import (
     FileReference,
     Granularity,
     ModelDefinition,
-    ModelFeatures,
     ModelType,
     OutputType,
     ReferenceFileUpload,
@@ -77,18 +76,6 @@ class Model:
 
     def algorithm(self) -> Optional[str]:
         return self.__algorithm
-
-    def update_features(self, features: List[ColumnDefinition]) -> None:
-        def __callback(_: requests.Response) -> None:
-            self.__features = features
-
-        invoke(
-            method='POST',
-            url=f'{self.__base_url}/api/models/{str(self.__uuid)}',
-            valid_response_code=200,
-            data=ModelFeatures(features=features).model_dump_json(),
-            func=__callback,
-        )
 
     def delete(self) -> None:
         """Delete the actual `Model` from the platform
@@ -176,58 +163,14 @@ class Model:
             if object_name is None:
                 object_name = f'{self.__uuid}/reference/{os.path.basename(file_name)}'
 
-            try:
-                s3_client = boto3.client(
-                    's3',
-                    aws_access_key_id=(
-                        None
-                        if aws_credentials is None
-                        else aws_credentials.access_key_id
-                    ),
-                    aws_secret_access_key=(
-                        None
-                        if aws_credentials is None
-                        else aws_credentials.secret_access_key
-                    ),
-                    region_name=(
-                        None
-                        if aws_credentials is None
-                        else aws_credentials.default_region
-                    ),
-                    endpoint_url=(
-                        None
-                        if aws_credentials is None
-                        else (
-                            None
-                            if aws_credentials.endpoint_url is None
-                            else aws_credentials.endpoint_url
-                        )
-                    ),
-                )
-
-                s3_client.upload_file(
-                    file_name,
-                    bucket,
-                    object_name,
-                    ExtraArgs={
-                        'Metadata': {
-                            'model_uuid': str(self.__uuid),
-                            'model_name': self.__name,
-                            'file_type': 'reference',
-                        }
-                    },
-                )
-            except BotoClientError as e:
-                raise ClientError(
-                    f'Unable to upload file {file_name} to remote storage: {e}'
-                ) from e
+            self.__upload_file_to_s3(file_name, bucket, object_name, aws_credentials)
             return self.__bind_reference_dataset(
                 f's3://{bucket}/{object_name}', separator
             )
 
         raise ClientError(
-            f'File {file_name} not contains all defined columns: {required_headers}'
-        ) from None
+            f'File {file_name} does not contain all required columns: {required_headers}'
+        )
 
     def bind_reference_dataset(
         self,
@@ -237,61 +180,14 @@ class Model:
     ) -> ModelReferenceDataset:
         """Bind an existing reference dataset file already uploaded to S3 to a `Model`
 
-        :param dataset_url: The url of the file already uploaded inside S3
+        :param dataset_url: The URL of the file already uploaded inside S3
         :param aws_credentials: AWS credentials used to connect to S3 bucket. Default value is None.
         :param separator: Optional value to define separator used inside CSV file. Default value is ","
         :return: An instance of `ModelReferenceDataset` representing the reference dataset
         """
 
-        url_parts = dataset_url.replace('s3://', '').split('/')
-
-        try:
-            s3_client = boto3.client(
-                's3',
-                aws_access_key_id=(
-                    None if aws_credentials is None else aws_credentials.access_key_id
-                ),
-                aws_secret_access_key=(
-                    None
-                    if aws_credentials is None
-                    else aws_credentials.secret_access_key
-                ),
-                region_name=(
-                    None if aws_credentials is None else aws_credentials.default_region
-                ),
-                endpoint_url=(
-                    None
-                    if aws_credentials is None
-                    else (
-                        None
-                        if aws_credentials.endpoint_url is None
-                        else aws_credentials.endpoint_url
-                    )
-                ),
-            )
-
-            chunks_iterator = s3_client.get_object(
-                Bucket=url_parts[0], Key='/'.join(url_parts[1:])
-            )['Body'].iter_chunks()
-
-            chunks = ''
-            for c in (chunk for chunk in chunks_iterator if '\n' not in chunks):
-                chunks += c.decode('UTF-8')
-
-            file_headers = chunks.split('\n')[0].split(separator)
-
-            required_headers = self.__required_headers()
-
-            if set(required_headers).issubset(file_headers):
-                return self.__bind_reference_dataset(dataset_url, separator)
-
-            raise ClientError(
-                f'File {dataset_url} not contains all defined columns: {required_headers}'
-            ) from None
-        except BotoClientError as e:
-            raise ClientError(
-                f'Unable to get file {dataset_url} from remote storage: {e}'
-            ) from e
+        self.__validate_dataset_url(dataset_url, aws_credentials, separator)
+        return self.__bind_reference_dataset(dataset_url, separator)
 
     def load_current_dataset(
         self,
@@ -328,58 +224,14 @@ class Model:
             if object_name is None:
                 object_name = f'{self.__uuid}/current/{os.path.basename(file_name)}'
 
-            try:
-                s3_client = boto3.client(
-                    's3',
-                    aws_access_key_id=(
-                        None
-                        if aws_credentials is None
-                        else aws_credentials.access_key_id
-                    ),
-                    aws_secret_access_key=(
-                        None
-                        if aws_credentials is None
-                        else aws_credentials.secret_access_key
-                    ),
-                    region_name=(
-                        None
-                        if aws_credentials is None
-                        else aws_credentials.default_region
-                    ),
-                    endpoint_url=(
-                        None
-                        if aws_credentials is None
-                        else (
-                            None
-                            if aws_credentials.endpoint_url is None
-                            else aws_credentials.endpoint_url
-                        )
-                    ),
-                )
-
-                s3_client.upload_file(
-                    file_name,
-                    bucket,
-                    object_name,
-                    ExtraArgs={
-                        'Metadata': {
-                            'model_uuid': str(self.__uuid),
-                            'model_name': self.__name,
-                            'file_type': 'reference',
-                        }
-                    },
-                )
-            except BotoClientError as e:
-                raise ClientError(
-                    f'Unable to upload file {file_name} to remote storage: {e}'
-                ) from e
+            self.__upload_file_to_s3(file_name, bucket, object_name, aws_credentials)
             return self.__bind_current_dataset(
                 f's3://{bucket}/{object_name}', separator, correlation_id_column
             )
 
         raise ClientError(
-            f'File {file_name} not contains all defined columns: {required_headers}'
-        ) from None
+            f'File {file_name} does not contain all required columns: {required_headers}'
+        )
 
     def bind_current_dataset(
         self,
@@ -390,66 +242,34 @@ class Model:
     ) -> ModelCurrentDataset:
         """Bind an existing current dataset file already uploaded to S3 to a `Model`
 
-        :param dataset_url: The url of the file already uploaded inside S3
+        :param dataset_url: The URL of the file already uploaded inside S3
         :param correlation_id_column: The name of the column used for correlation id
         :param aws_credentials: AWS credentials used to connect to S3 bucket. Default value is None.
         :param separator: Optional value to define separator used inside CSV file. Default value is ","
         :return: An instance of `ModelReferenceDataset` representing the reference dataset
         """
 
-        url_parts = dataset_url.replace('s3://', '').split('/')
+        self.__validate_dataset_url(dataset_url, aws_credentials, separator, correlation_id_column)
+        return self.__bind_current_dataset(dataset_url, separator, correlation_id_column)
 
-        try:
-            s3_client = boto3.client(
-                's3',
-                aws_access_key_id=(
-                    None if aws_credentials is None else aws_credentials.access_key_id
-                ),
-                aws_secret_access_key=(
-                    None
-                    if aws_credentials is None
-                    else aws_credentials.secret_access_key
-                ),
-                region_name=(
-                    None if aws_credentials is None else aws_credentials.default_region
-                ),
-                endpoint_url=(
-                    None
-                    if aws_credentials is None
-                    else (
-                        None
-                        if aws_credentials.endpoint_url is None
-                        else aws_credentials.endpoint_url
-                    )
-                ),
-            )
+    def update_features(self, new_features: List[ColumnDefinition]) -> None:
+        """Update the features of the model.
 
-            chunks_iterator = s3_client.get_object(
-                Bucket=url_parts[0], Key='/'.join(url_parts[1:])
-            )['Body'].iter_chunks()
+        :param new_features: A list of new features to be added or updated.
+        """
+        updated_definition = self.__definition_with_updated_features(new_features)
+        response = invoke(
+            method='POST',
+            url=f'{self.__base_url}/api/models/{str(self.__uuid)}',
+            valid_response_code=200,
+            func=lambda _: None,
+            data=updated_definition.model_dump_json(),
+        )
 
-            chunks = ''
-            for c in (chunk for chunk in chunks_iterator if '\n' not in chunks):
-                chunks += c.decode('UTF-8')
-
-            file_headers = chunks.split('\n')[0].split(separator)
-
-            required_headers = self.__required_headers()
-            required_headers.append(correlation_id_column)
-            required_headers.append(self.__timestamp.name)
-
-            if set(required_headers).issubset(file_headers):
-                return self.__bind_current_dataset(
-                    dataset_url, separator, correlation_id_column
-                )
-
-            raise ClientError(
-                f'File {dataset_url} not contains all defined columns: {required_headers}'
-            ) from None
-        except BotoClientError as e:
-            raise ClientError(
-                f'Unable to get file {dataset_url} from remote storage: {e}'
-            ) from e
+        if response.status_code == 200:
+            self.__features = new_features
+        else:
+            raise ClientError(f'Failed to update model features: {response.text}')
 
     def __bind_reference_dataset(
         self,
@@ -508,3 +328,106 @@ class Model:
         model_columns = self.__features + self.__outputs.output
         model_columns.append(self.__target)
         return [model_column.name for model_column in model_columns]
+
+    def __upload_file_to_s3(
+        self,
+        file_name: str,
+        bucket: str,
+        object_name: str,
+        aws_credentials: Optional[AwsCredentials],
+    ) -> None:
+        try:
+            s3_client = self.__get_s3_client(aws_credentials)
+
+            s3_client.upload_file(
+                file_name,
+                bucket,
+                object_name,
+                ExtraArgs={
+                    'Metadata': {
+                        'model_uuid': str(self.__uuid),
+                        'model_name': self.__name,
+                        'file_type': 'reference',
+                    }
+                },
+            )
+        except BotoClientError as e:
+            raise ClientError(
+                f'Unable to upload file {file_name} to remote storage: {e}'
+            ) from e
+
+    def __validate_dataset_url(
+        self,
+        dataset_url: str,
+        aws_credentials: Optional[AwsCredentials],
+        separator: str,
+        correlation_id_column: Optional[str] = None,
+    ) -> None:
+        try:
+            s3_client = self.__get_s3_client(aws_credentials)
+            url_parts = dataset_url.replace('s3://', '').split('/')
+            file_headers = self.__get_file_headers(s3_client, url_parts, separator)
+
+            required_headers = self.__required_headers()
+            if correlation_id_column:
+                required_headers.append(correlation_id_column)
+            required_headers.append(self.__timestamp.name)
+
+            if not set(required_headers).issubset(file_headers):
+                raise ClientError(
+                    f'File {dataset_url} does not contain all required columns: {required_headers}'
+                )
+        except BotoClientError as e:
+            raise ClientError(
+                f'Unable to get file {dataset_url} from remote storage: {e}'
+            ) from e
+
+    def __get_s3_client(self, aws_credentials: Optional[AwsCredentials]) -> boto3.client:
+        return boto3.client(
+            's3',
+            aws_access_key_id=(
+                None
+                if aws_credentials is None
+                else aws_credentials.access_key_id
+            ),
+            aws_secret_access_key=(
+                None
+                if aws_credentials is None
+                else aws_credentials.secret_access_key
+            ),
+            region_name=(
+                None
+                if aws_credentials is None
+                else aws_credentials.default_region
+            ),
+            endpoint_url=(
+                None
+                if aws_credentials is None
+                else (
+                    None
+                    if aws_credentials.endpoint_url is None
+                    else aws_credentials.endpoint_url
+                )
+            ),
+        )
+
+    def __get_file_headers(self, s3_client: boto3.client, url_parts: List[str], separator: str) -> List[str]:
+        response = s3_client.get_object(Bucket=url_parts[0], Key='/'.join(url_parts[1:]))
+        header_line = response['Body'].readline().decode('UTF-8').strip()
+        return header_line.split(separator)
+
+    def __definition_with_updated_features(self, new_features: List[ColumnDefinition]) -> ModelDefinition:
+        return ModelDefinition(
+            uuid=self.__uuid,
+            name=self.__name,
+            description=self.__description,
+            model_type=self.__model_type,
+            data_type=self.__data_type,
+            granularity=self.__granularity,
+            features=new_features,
+            outputs=self.__outputs,
+            target=self.__target,
+            timestamp=self.__timestamp,
+            frameworks=self.__frameworks,
+            algorithm=self.__algorithm,
+        )
