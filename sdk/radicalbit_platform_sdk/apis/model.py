@@ -19,7 +19,6 @@ from radicalbit_platform_sdk.models import (
     FileReference,
     Granularity,
     ModelDefinition,
-    ModelFeatures,
     ModelType,
     OutputType,
     ReferenceFileUpload,
@@ -77,18 +76,6 @@ class Model:
 
     def algorithm(self) -> Optional[str]:
         return self.__algorithm
-
-    def update_features(self, features: List[ColumnDefinition]) -> None:
-        def __callback(_: requests.Response) -> None:
-            self.__features = features
-
-        invoke(
-            method='POST',
-            url=f'{self.__base_url}/api/models/{str(self.__uuid)}',
-            valid_response_code=200,
-            data=ModelFeatures(features=features).model_dump_json(),
-            func=__callback,
-        )
 
     def delete(self) -> None:
         """Delete the actual `Model` from the platform
@@ -177,33 +164,7 @@ class Model:
                 object_name = f'{self.__uuid}/reference/{os.path.basename(file_name)}'
 
             try:
-                s3_client = boto3.client(
-                    's3',
-                    aws_access_key_id=(
-                        None
-                        if aws_credentials is None
-                        else aws_credentials.access_key_id
-                    ),
-                    aws_secret_access_key=(
-                        None
-                        if aws_credentials is None
-                        else aws_credentials.secret_access_key
-                    ),
-                    region_name=(
-                        None
-                        if aws_credentials is None
-                        else aws_credentials.default_region
-                    ),
-                    endpoint_url=(
-                        None
-                        if aws_credentials is None
-                        else (
-                            None
-                            if aws_credentials.endpoint_url is None
-                            else aws_credentials.endpoint_url
-                        )
-                    ),
-                )
+                s3_client = self.__get_s3_client(aws_credentials)
 
                 s3_client.upload_file(
                     file_name,
@@ -246,29 +207,7 @@ class Model:
         url_parts = dataset_url.replace('s3://', '').split('/')
 
         try:
-            s3_client = boto3.client(
-                's3',
-                aws_access_key_id=(
-                    None if aws_credentials is None else aws_credentials.access_key_id
-                ),
-                aws_secret_access_key=(
-                    None
-                    if aws_credentials is None
-                    else aws_credentials.secret_access_key
-                ),
-                region_name=(
-                    None if aws_credentials is None else aws_credentials.default_region
-                ),
-                endpoint_url=(
-                    None
-                    if aws_credentials is None
-                    else (
-                        None
-                        if aws_credentials.endpoint_url is None
-                        else aws_credentials.endpoint_url
-                    )
-                ),
-            )
+            s3_client = self.__get_s3_client(aws_credentials)
 
             chunks_iterator = s3_client.get_object(
                 Bucket=url_parts[0], Key='/'.join(url_parts[1:])
@@ -329,33 +268,7 @@ class Model:
                 object_name = f'{self.__uuid}/current/{os.path.basename(file_name)}'
 
             try:
-                s3_client = boto3.client(
-                    's3',
-                    aws_access_key_id=(
-                        None
-                        if aws_credentials is None
-                        else aws_credentials.access_key_id
-                    ),
-                    aws_secret_access_key=(
-                        None
-                        if aws_credentials is None
-                        else aws_credentials.secret_access_key
-                    ),
-                    region_name=(
-                        None
-                        if aws_credentials is None
-                        else aws_credentials.default_region
-                    ),
-                    endpoint_url=(
-                        None
-                        if aws_credentials is None
-                        else (
-                            None
-                            if aws_credentials.endpoint_url is None
-                            else aws_credentials.endpoint_url
-                        )
-                    ),
-                )
+                s3_client = self.__get_s3_client(aws_credentials)
 
                 s3_client.upload_file(
                     file_name,
@@ -400,29 +313,7 @@ class Model:
         url_parts = dataset_url.replace('s3://', '').split('/')
 
         try:
-            s3_client = boto3.client(
-                's3',
-                aws_access_key_id=(
-                    None if aws_credentials is None else aws_credentials.access_key_id
-                ),
-                aws_secret_access_key=(
-                    None
-                    if aws_credentials is None
-                    else aws_credentials.secret_access_key
-                ),
-                region_name=(
-                    None if aws_credentials is None else aws_credentials.default_region
-                ),
-                endpoint_url=(
-                    None
-                    if aws_credentials is None
-                    else (
-                        None
-                        if aws_credentials.endpoint_url is None
-                        else aws_credentials.endpoint_url
-                    )
-                ),
-            )
+            s3_client = self.__get_s3_client(aws_credentials)
 
             chunks_iterator = s3_client.get_object(
                 Bucket=url_parts[0], Key='/'.join(url_parts[1:])
@@ -450,6 +341,24 @@ class Model:
             raise ClientError(
                 f'Unable to get file {dataset_url} from remote storage: {e}'
             ) from e
+
+    def update_features(self, new_features: List[ColumnDefinition]) -> None:
+        """Update the features of the model.
+
+        :param new_features: A list of new features to be added to the model.
+        :return: None
+        """
+        try:
+            response = invoke(
+                method='POST',
+                url=f'{self.__base_url}/api/models/{str(self.__uuid)}',
+                valid_response_code=200,
+                func=lambda _: None,
+                data={'features': [feature.model_dump() for feature in new_features]},
+            )
+            self.__features = new_features
+        except ClientError as e:
+            raise ClientError(f'Failed to update model features: {e}') from e
 
     def __bind_reference_dataset(
         self,
@@ -508,3 +417,30 @@ class Model:
         model_columns = self.__features + self.__outputs.output
         model_columns.append(self.__target)
         return [model_column.name for model_column in model_columns]
+
+    def __get_s3_client(self, aws_credentials: Optional[AwsCredentials]) -> boto3.client:
+        return boto3.client(
+            's3',
+            aws_access_key_id=(
+                None
+                if aws_credentials is None
+                else aws_credentials.access_key_id
+            ),
+            aws_secret_access_key=(
+                None
+                if aws_credentials is None
+                else aws_credentials.secret_access_key
+            ),
+            region_name=(
+                None if aws_credentials is None else aws_credentials.default_region
+            ),
+            endpoint_url=(
+                None
+                if aws_credentials is None
+                else (
+                    None
+                    if aws_credentials.endpoint_url is None
+                    else aws_credentials.endpoint_url
+                )
+            ),
+        )
