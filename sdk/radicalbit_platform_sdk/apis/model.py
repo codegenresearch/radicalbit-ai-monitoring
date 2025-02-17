@@ -19,7 +19,6 @@ from radicalbit_platform_sdk.models import (
     FileReference,
     Granularity,
     ModelDefinition,
-    ModelFeatures,
     ModelType,
     OutputType,
     ReferenceFileUpload,
@@ -77,18 +76,6 @@ class Model:
 
     def algorithm(self) -> Optional[str]:
         return self.__algorithm
-
-    def update_features(self, features: List[ColumnDefinition]) -> None:
-        def __callback(_: requests.Response) -> None:
-            self.__features = features
-
-        invoke(
-            method='POST',
-            url=f'{self.__base_url}/api/models/{str(self.__uuid)}',
-            valid_response_code=200,
-            data=ModelFeatures(features=features).model_dump_json(),
-            func=__callback,
-        )
 
     def delete(self) -> None:
         """Delete the actual `Model` from the platform
@@ -243,55 +230,16 @@ class Model:
         :return: An instance of `ModelReferenceDataset` representing the reference dataset
         """
 
-        url_parts = dataset_url.replace('s3://', '').split('/')
+        file_headers = self.__get_s3_file_headers(dataset_url, aws_credentials, separator)
 
-        try:
-            s3_client = boto3.client(
-                's3',
-                aws_access_key_id=(
-                    None if aws_credentials is None else aws_credentials.access_key_id
-                ),
-                aws_secret_access_key=(
-                    None
-                    if aws_credentials is None
-                    else aws_credentials.secret_access_key
-                ),
-                region_name=(
-                    None if aws_credentials is None else aws_credentials.default_region
-                ),
-                endpoint_url=(
-                    None
-                    if aws_credentials is None
-                    else (
-                        None
-                        if aws_credentials.endpoint_url is None
-                        else aws_credentials.endpoint_url
-                    )
-                ),
-            )
+        required_headers = self.__required_headers()
 
-            chunks_iterator = s3_client.get_object(
-                Bucket=url_parts[0], Key='/'.join(url_parts[1:])
-            )['Body'].iter_chunks()
+        if set(required_headers).issubset(file_headers):
+            return self.__bind_reference_dataset(dataset_url, separator)
 
-            chunks = ''
-            for c in (chunk for chunk in chunks_iterator if '\n' not in chunks):
-                chunks += c.decode('UTF-8')
-
-            file_headers = chunks.split('\n')[0].split(separator)
-
-            required_headers = self.__required_headers()
-
-            if set(required_headers).issubset(file_headers):
-                return self.__bind_reference_dataset(dataset_url, separator)
-
-            raise ClientError(
-                f'File {dataset_url} not contains all defined columns: {required_headers}'
-            ) from None
-        except BotoClientError as e:
-            raise ClientError(
-                f'Unable to get file {dataset_url} from remote storage: {e}'
-            ) from e
+        raise ClientError(
+            f'File {dataset_url} not contains all defined columns: {required_headers}'
+        ) from None
 
     def load_current_dataset(
         self,
@@ -397,59 +345,35 @@ class Model:
         :return: An instance of `ModelReferenceDataset` representing the reference dataset
         """
 
-        url_parts = dataset_url.replace('s3://', '').split('/')
+        file_headers = self.__get_s3_file_headers(dataset_url, aws_credentials, separator)
 
-        try:
-            s3_client = boto3.client(
-                's3',
-                aws_access_key_id=(
-                    None if aws_credentials is None else aws_credentials.access_key_id
-                ),
-                aws_secret_access_key=(
-                    None
-                    if aws_credentials is None
-                    else aws_credentials.secret_access_key
-                ),
-                region_name=(
-                    None if aws_credentials is None else aws_credentials.default_region
-                ),
-                endpoint_url=(
-                    None
-                    if aws_credentials is None
-                    else (
-                        None
-                        if aws_credentials.endpoint_url is None
-                        else aws_credentials.endpoint_url
-                    )
-                ),
+        required_headers = self.__required_headers()
+        required_headers.append(correlation_id_column)
+        required_headers.append(self.__timestamp.name)
+
+        if set(required_headers).issubset(file_headers):
+            return self.__bind_current_dataset(
+                dataset_url, separator, correlation_id_column
             )
 
-            chunks_iterator = s3_client.get_object(
-                Bucket=url_parts[0], Key='/'.join(url_parts[1:])
-            )['Body'].iter_chunks()
+        raise ClientError(
+            f'File {dataset_url} not contains all defined columns: {required_headers}'
+        ) from None
 
-            chunks = ''
-            for c in (chunk for chunk in chunks_iterator if '\n' not in chunks):
-                chunks += c.decode('UTF-8')
+    def update_features(self, new_features: List[ColumnDefinition]) -> None:
+        """Update the features of the model.
 
-            file_headers = chunks.split('\n')[0].split(separator)
-
-            required_headers = self.__required_headers()
-            required_headers.append(correlation_id_column)
-            required_headers.append(self.__timestamp.name)
-
-            if set(required_headers).issubset(file_headers):
-                return self.__bind_current_dataset(
-                    dataset_url, separator, correlation_id_column
-                )
-
-            raise ClientError(
-                f'File {dataset_url} not contains all defined columns: {required_headers}'
-            ) from None
-        except BotoClientError as e:
-            raise ClientError(
-                f'Unable to get file {dataset_url} from remote storage: {e}'
-            ) from e
+        :param new_features: List of new features to update the model with.
+        :return: None
+        """
+        invoke(
+            method='POST',
+            url=f'{self.__base_url}/api/models/{str(self.__uuid)}',
+            valid_response_code=200,
+            func=lambda _: None,
+            data=TypeAdapter(List[ColumnDefinition]).dump_json(new_features),
+        )
+        self.__features = new_features
 
     def __bind_reference_dataset(
         self,
@@ -508,3 +432,41 @@ class Model:
         model_columns = self.__features + self.__outputs.output
         model_columns.append(self.__target)
         return [model_column.name for model_column in model_columns]
+
+    def __get_s3_file_headers(self, dataset_url: str, aws_credentials: Optional[AwsCredentials], separator: str) -> List[str]:
+        url_parts = dataset_url.replace('s3://', '').split('/')
+        bucket = url_parts[0]
+        key = '/'.join(url_parts[1:])
+
+        try:
+            s3_client = boto3.client(
+                's3',
+                aws_access_key_id=(
+                    None if aws_credentials is None else aws_credentials.access_key_id
+                ),
+                aws_secret_access_key=(
+                    None
+                    if aws_credentials is None
+                    else aws_credentials.secret_access_key
+                ),
+                region_name=(
+                    None if aws_credentials is None else aws_credentials.default_region
+                ),
+                endpoint_url=(
+                    None
+                    if aws_credentials is None
+                    else (
+                        None
+                        if aws_credentials.endpoint_url is None
+                        else aws_credentials.endpoint_url
+                    )
+                ),
+            )
+
+            response = s3_client.get_object(Bucket=bucket, Key=key)
+            first_line = response['Body'].readline().decode('UTF-8')
+            return first_line.strip().split(separator)
+        except BotoClientError as e:
+            raise ClientError(
+                f'Unable to get file {dataset_url} from remote storage: {e}'
+            ) from e
