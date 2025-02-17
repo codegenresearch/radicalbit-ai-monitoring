@@ -37,7 +37,6 @@ from .model_definition import (
     CreateModel,
     Granularity,
     ModelDefinition,
-    ModelFeatures,
     OutputType,
 )
 from .model_type import ModelType
@@ -48,7 +47,6 @@ __all__ = [
     'Granularity',
     'CreateModel',
     'ModelDefinition',
-    'ModelFeatures',
     'ColumnDefinition',
     'JobStatus',
     'DataType',
@@ -83,3 +81,11 @@ __all__ = [
     'SupportedTypes',
     'FieldType',
 ]
+
+# Example of dynamically adding model features for API testing
+def add_model_features(model_definition: ModelDefinition, features: list[ColumnDefinition]):
+    model_definition.features.extend(features)
+
+# Example usage
+# new_features = [ColumnDefinition(name='new_feature', type=SupportedTypes.float, field_type=FieldTypes.numerical)]
+# add_model_features(existing_model_definition, new_features)
